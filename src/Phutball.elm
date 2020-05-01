@@ -19,10 +19,15 @@ type alias Coords =
   }
 
 type alias Ball =
-  { dragging : Bool
-  , coords : Coords
-  , drawLoc : Coords
+  { coords : Coords
+  -- , drawLoc : Coords
   -- , history : List Coords
+  }
+
+type alias MouseData =
+  { draggingBall : Bool
+  , start : Coords
+  , current : Coords
   }
 
 type Player
@@ -36,15 +41,14 @@ type alias Game =
   }
 
 type Model
-  = Ready    Game
-  | Playing  Game
-  | Finished Game
+  = Ready    Game MouseData
+  | Playing  Game MouseData
+  | Finished Game MouseData
 
 type Msg
-  = Click Coords
-  | BeginDrag
-  | Drag Coords
-  | Drop Coords
+  = MouseDown Coords
+  | MouseMove Coords
+  | MouseUp   Coords
 
 opposite : Player -> Player
 opposite p =
@@ -86,7 +90,10 @@ peopleInBetween coords game =
     n = Basics.max (p2.x-p1.x) (p2.y-p1.y)
     between = List.map (\i -> Coords (p1.x+dx*i) (p1.y+dy*i)) (List.range 1 (n-1))
   in
-    List.all (\x -> List.member x game.people) between
+    if n == 0 || n == 1 then
+      False
+    else
+      List.all (\x -> List.member x game.people) between
 
 validDrag : Coords -> Game -> Bool
 validDrag coords game = (empty coords game) && (inDraggableBounds coords) && (validJump coords game)
@@ -100,80 +107,95 @@ main =
     , view = view
   }
 
+game_init = Game (Ball (Coords 7 9)) [] X
+mouse_init = MouseData False (Coords -1 -1) (Coords -1 -1)
+
 init : () -> (Model, Cmd Msg)
-init _ = (Playing (Game (Ball False (Coords 7 9) (loc <| Coords 7 9)) [] X), Cmd.none)
+init _ = (Playing game_init mouse_init, Cmd.none)
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case model of
-    Playing game ->
+    Playing game mouse ->
       case msg of
-        Click coords ->
-          if placeable coords game then
-            (Playing {game | people = coords :: game.people, turn = (opposite game.turn)}, Cmd.none)
+        -- Click coords ->
+          -- if placeable coords game then
+            -- (Playing {game | people = coords :: game.people, turn = (opposite game.turn)}, Cmd.none)
+          -- else
+            -- (model, Cmd.none)
+        MouseDown coords ->
+          let
+            dragging = if (toGrid coords) == game.ball.coords then True else False
+            mouse_data = MouseData dragging (toGrid coords) coords
+          in
+            (Playing game mouse_data, Cmd.none)
+        MouseMove coords ->
+          (Playing game {mouse | current = coords}, Cmd.none)
+        MouseUp coords ->
+          if mouse.draggingBall then
+            -- try to place ball
+            if validDrag (toGrid coords) game then
+              (Playing {game | ball = (Ball (toGrid coords))} {mouse | draggingBall = False, current = coords}, Cmd.none)
+            else
+              (Playing game {mouse | draggingBall = False, current = coords}, Cmd.none)
           else
-            (model, Cmd.none)
-        BeginDrag ->
-          (Playing {game | ball = updateBall BeginDrag game.ball}, Cmd.none)
-        Drag xy ->
-          (Playing {game | ball = updateBall (Drag xy) game.ball}, Cmd.none)
-        Drop coords ->
-          if validDrag coords game then
-            (Playing {game | ball = updateBall (Drop coords) game.ball}, Cmd.none)
-          else
-            (Playing {game | ball = updateBall (Drop game.ball.coords) game.ball}, Cmd.none)
+            -- try to place person
+            if placeable (toGrid coords) game && mouse.start == (toGrid coords) then
+              (Playing {game | people = (toGrid coords) :: game.people, turn = (opposite game.turn)} {mouse | current = coords}, Cmd.none)
+            else
+              (Playing game {mouse | current = coords}, Cmd.none)
     _ ->
       (model, Cmd.none)
 
-updateBall : Msg -> Ball -> Ball
-updateBall msg ball =
-  case msg of
-    BeginDrag   -> {ball | dragging = True}
-    Drag coords -> {ball | drawLoc = coords}
-    Drop coords -> Ball False coords (loc coords)
-    Click _     -> ball
+-- updateBall : Msg -> Ball -> Ball
+-- updateBall msg ball =
+  -- case msg of
+    -- MouseDown coords  -> {ball | dragging = True}
+    -- MouseMove coords  -> {ball | drawLoc = coords}
+    -- MouseUp   coords  -> Ball False coords (loc coords)
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
   case model of
-    Playing game ->
-      case game.ball.dragging of
+    Playing game mouse ->
+      case mouse.draggingBall of
         True ->
           Sub.batch
-          [ Browser.Events.onMouseDown (Json.Decode.map Drag decodeXY)
-          , Browser.Events.onMouseMove (Json.Decode.map Drag decodeXY)
-          , Browser.Events.onMouseUp   (Json.Decode.map Drop decodeCoords)
+          [ Browser.Events.onMouseMove (Json.Decode.map MouseMove decodeCoords)
+          , Browser.Events.onMouseUp   (Json.Decode.map MouseUp   decodeCoords)
           ]
         False ->
-          Browser.Events.onClick (Json.Decode.map Click decodeCoords)
+          Sub.batch
+          [ Browser.Events.onMouseDown (Json.Decode.map MouseDown decodeCoords)
+          , Browser.Events.onMouseUp   (Json.Decode.map MouseUp   decodeCoords)
+          ]
     _ -> Sub.none
 
 decodeX      = (Json.Decode.field "pageX" Json.Decode.int)
 decodeY      = (Json.Decode.field "pageY" Json.Decode.int)
-decodeCoords = (Json.Decode.map2 toCoords decodeX decodeY)
-decodeXY     = (Json.Decode.map2 Coords decodeX decodeY)
+decodeCoords = (Json.Decode.map2 Coords decodeX decodeY)
 
 -- idea: shift and resize game grid so that each coord is 1 unit apart to use round function and loc
-toCoords : Int -> Int -> Coords
-toCoords x y =
+toGrid : Coords -> Coords
+toGrid coords =
   let
-    x_coord = round (toFloat x / square_width) - 1
-    y_coord = round (toFloat y / square_width) - 1
+    x_coord = round (toFloat coords.x / square_width) - 1
+    y_coord = round (toFloat coords.y / square_width) - 1
   in
     Coords x_coord y_coord
 
 view : Model -> Html Msg
 view model =
   case model of
-    Ready    game -> drawGame game
-    Playing  game -> drawGame game
-    Finished game -> drawGame game
+    Ready    game mouse -> drawGame game mouse
+    Playing  game mouse -> drawGame game mouse
+    Finished game mouse -> drawGame game mouse
 
-drawGame : Game -> Html Msg
-drawGame game =
+drawGame : Game -> MouseData -> Html Msg
+drawGame game mouse =
   svg [width (String.fromInt (w + 2 * margin)), height (String.fromInt (h + 2 * margin))]
-  ([background] ++ grid ++ endZones ++ people game.people ++ [drawBall game.ball])
+  ([background] ++ grid ++ endZones ++ people game.people ++ [drawBall game.ball mouse])
 
 horizontal : Int -> String -> Int -> Svg msg
 horizontal y color width = line
@@ -215,20 +237,21 @@ background = rect
 endZones : List (Svg msg)
 endZones = [horizontal 0 "DarkBlue" 5, horizontal 20 "DarkBlue" 5]
 
-drawBall : Ball -> Svg Msg
-drawBall b =
-  -- let
-  --   x = if b.dragging then b.drawLoc.x else (loc <| b.coords).x
-  --   y = if b.dragging then b.drawLoc.y else (loc <| b.coords).y
-  --   radius = if b.dragging then square_width * 0.65 else square_width * 0.45
-  -- in
-  circle
-  [ cx <| String.fromInt b.drawLoc.x
-  , cy <| String.fromInt b.drawLoc.y
-  , r  <| String.fromFloat (if b.dragging then square_width * 0.65 else square_width * 0.45)
-  , fill "white"
-  , Svg.Events.onMouseDown BeginDrag
-  ] []
+drawBall : Ball -> MouseData -> Svg Msg
+drawBall ball mouse =
+  let
+    ball_coords  = loc ball.coords
+    x   = if mouse.draggingBall then mouse.current.x else ball_coords.x
+    y   = if mouse.draggingBall then mouse.current.y else ball_coords.y
+    rad = if mouse.draggingBall then 0.65 * square_width else 0.45 * square_width
+  in
+    circle
+    [ cx <| String.fromInt x
+    , cy <| String.fromInt y
+    , r  <| String.fromFloat rad
+    , fill "white"
+    -- , Svg.Events.onMouseDown BeginDrag
+    ] []
 
 people : List Coords -> List (Svg msg)
 people coords_list = List.map (\x -> stone x "black") coords_list
