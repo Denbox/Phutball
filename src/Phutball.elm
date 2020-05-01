@@ -78,16 +78,16 @@ cross : Coords -> Coords -> Bool
 cross start end = (start.x == end.x) || (start.y == end.y)
 
 allowedLine : Coords -> Coords -> Bool
-allowedLine start end = diag start end || cross start end
+allowedLine start end = (diag start end) || (cross start end)
 
 peopleInBetween : Coords -> Game -> Bool
 peopleInBetween coords game =
   let
     p1 = coords
     p2 = game.ball.coords
-    dx = if p1.x == p2.x then 0 else (p2.x-p1.x) // (abs p2.x-p1.x)
-    dy = if p1.y == p2.y then 0 else (p2.y-p1.y) // (abs p2.y-p1.y)
-    n = Basics.max (p2.x-p1.x) (p2.y-p1.y)
+    dx = if p1.x == p2.x then 0 else (abs (p2.x-p1.x)) // (p2.x-p1.x)
+    dy = if p1.y == p2.y then 0 else (abs (p2.y-p1.y)) // (p2.y-p1.y)
+    n = Basics.max (abs (p2.x-p1.x)) (abs (p2.y-p1.y))
     between = List.map (\i -> Coords (p1.x+dx*i) (p1.y+dy*i)) (List.range 1 (n-1))
   in
     if n == 0 || n == 1 then

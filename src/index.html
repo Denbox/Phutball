@@ -5754,9 +5754,12 @@ var $author$project$Phutball$peopleInBetween = F2(
 	function (coords, game) {
 		var p2 = game.ball.coords;
 		var p1 = coords;
-		var n = A2($elm$core$Basics$max, p2.x - p1.x, p2.y - p1.y);
-		var dy = _Utils_eq(p1.y, p2.y) ? 0 : (((p2.y - p1.y) / ($elm$core$Basics$abs(p2.y) - p1.y)) | 0);
-		var dx = _Utils_eq(p1.x, p2.x) ? 0 : (((p2.x - p1.x) / ($elm$core$Basics$abs(p2.x) - p1.x)) | 0);
+		var n = A2(
+			$elm$core$Basics$max,
+			$elm$core$Basics$abs(p2.x - p1.x),
+			$elm$core$Basics$abs(p2.y - p1.y));
+		var dy = _Utils_eq(p1.y, p2.y) ? 0 : (($elm$core$Basics$abs(p2.y - p1.y) / (p2.y - p1.y)) | 0);
+		var dx = _Utils_eq(p1.x, p2.x) ? 0 : (($elm$core$Basics$abs(p2.x - p1.x) / (p2.x - p1.x)) | 0);
 		var between = A2(
 			$elm$core$List$map,
 			function (i) {
