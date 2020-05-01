@@ -5162,9 +5162,10 @@ var $author$project$Phutball$Playing = F2(
 	function (a, b) {
 		return {$: 'Playing', a: a, b: b};
 	});
-var $author$project$Phutball$Ball = function (coords) {
-	return {coords: coords};
-};
+var $author$project$Phutball$Ball = F2(
+	function (coords, history) {
+		return {coords: coords, history: history};
+	});
 var $author$project$Phutball$Coords = F2(
 	function (x, y) {
 		return {x: x, y: y};
@@ -5176,8 +5177,10 @@ var $author$project$Phutball$Game = F3(
 var $author$project$Phutball$X = {$: 'X'};
 var $author$project$Phutball$game_init = A3(
 	$author$project$Phutball$Game,
-	$author$project$Phutball$Ball(
-		A2($author$project$Phutball$Coords, 7, 9)),
+	A2(
+		$author$project$Phutball$Ball,
+		A2($author$project$Phutball$Coords, 7, 9),
+		_List_Nil),
 	_List_Nil,
 	$author$project$Phutball$X);
 var $author$project$Phutball$MouseData = F3(
@@ -5766,7 +5769,7 @@ var $author$project$Phutball$peopleInBetween = F2(
 				return A2($author$project$Phutball$Coords, p1.x + (dx * i), p1.y + (dy * i));
 			},
 			A2($elm$core$List$range, 1, n - 1));
-		return ((!n) || (n === 1)) ? false : A2(
+		return (n === 1) ? false : A2(
 			$elm$core$List$all,
 			function (x) {
 				return A2($elm$core$List$member, x, game.people);
@@ -5812,56 +5815,72 @@ var $author$project$Phutball$update = F2(
 						$elm$core$Platform$Cmd$none);
 				default:
 					var coords = msg.a;
-					return mouse.draggingBall ? (A2(
-						$author$project$Phutball$validDrag,
-						$author$project$Phutball$toGrid(coords),
-						game) ? _Utils_Tuple2(
-						A2(
-							$author$project$Phutball$Playing,
-							_Utils_update(
-								game,
-								{
-									ball: $author$project$Phutball$Ball(
-										$author$project$Phutball$toGrid(coords))
-								}),
-							_Utils_update(
-								mouse,
-								{current: coords, draggingBall: false})),
-						$elm$core$Platform$Cmd$none) : _Utils_Tuple2(
-						A2(
-							$author$project$Phutball$Playing,
-							game,
-							_Utils_update(
-								mouse,
-								{current: coords, draggingBall: false})),
-						$elm$core$Platform$Cmd$none)) : ((A2(
-						$author$project$Phutball$placeable,
-						$author$project$Phutball$toGrid(coords),
-						game) && _Utils_eq(
-						mouse.start,
-						$author$project$Phutball$toGrid(coords))) ? _Utils_Tuple2(
-						A2(
-							$author$project$Phutball$Playing,
-							_Utils_update(
-								game,
-								{
-									people: A2(
-										$elm$core$List$cons,
-										$author$project$Phutball$toGrid(coords),
-										game.people),
-									turn: $author$project$Phutball$opposite(game.turn)
-								}),
-							_Utils_update(
-								mouse,
-								{current: coords})),
-						$elm$core$Platform$Cmd$none) : _Utils_Tuple2(
-						A2(
-							$author$project$Phutball$Playing,
-							game,
-							_Utils_update(
-								mouse,
-								{current: coords})),
-						$elm$core$Platform$Cmd$none));
+					if (mouse.draggingBall) {
+						if (A2(
+							$author$project$Phutball$validDrag,
+							$author$project$Phutball$toGrid(coords),
+							game)) {
+							var ball_and_history = A2(
+								$author$project$Phutball$Ball,
+								$author$project$Phutball$toGrid(coords),
+								_Utils_ap(
+									game.ball.history,
+									_List_fromArray(
+										[game.ball.coords])));
+							return _Utils_Tuple2(
+								A2(
+									$author$project$Phutball$Playing,
+									_Utils_update(
+										game,
+										{ball: ball_and_history}),
+									_Utils_update(
+										mouse,
+										{current: coords, draggingBall: false})),
+								$elm$core$Platform$Cmd$none);
+						} else {
+							return _Utils_Tuple2(
+								A2(
+									$author$project$Phutball$Playing,
+									game,
+									_Utils_update(
+										mouse,
+										{current: coords, draggingBall: false})),
+								$elm$core$Platform$Cmd$none);
+						}
+					} else {
+						if (A2(
+							$author$project$Phutball$placeable,
+							$author$project$Phutball$toGrid(coords),
+							game) && _Utils_eq(
+							mouse.start,
+							$author$project$Phutball$toGrid(coords))) {
+							return _Utils_Tuple2(
+								A2(
+									$author$project$Phutball$Playing,
+									_Utils_update(
+										game,
+										{
+											people: A2(
+												$elm$core$List$cons,
+												$author$project$Phutball$toGrid(coords),
+												game.people),
+											turn: $author$project$Phutball$opposite(game.turn)
+										}),
+									_Utils_update(
+										mouse,
+										{current: coords})),
+								$elm$core$Platform$Cmd$none);
+						} else {
+							return _Utils_Tuple2(
+								A2(
+									$author$project$Phutball$Playing,
+									game,
+									_Utils_update(
+										mouse,
+										{current: coords})),
+								$elm$core$Platform$Cmd$none);
+						}
+					}
 			}
 		} else {
 			return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -5892,37 +5911,82 @@ var $author$project$Phutball$background = A2(
 			$elm$svg$Svg$Attributes$fill('BurlyWood')
 		]),
 	_List_Nil);
+var $elm$core$String$concat = function (strings) {
+	return A2($elm$core$String$join, '', strings);
+};
+var $elm$svg$Svg$Attributes$d = _VirtualDom_attribute('d');
 var $elm$svg$Svg$circle = $elm$svg$Svg$trustedNode('circle');
 var $elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
 var $elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
 var $elm$core$String$fromFloat = _String_fromNumber;
-var $author$project$Phutball$loc = function (coords) {
-	return A2($author$project$Phutball$Coords, $author$project$Phutball$square_width * (coords.x + 1), $author$project$Phutball$square_width * (coords.y + 1));
-};
 var $elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
-var $author$project$Phutball$drawBall = F2(
-	function (ball, mouse) {
-		var rad = mouse.draggingBall ? (0.65 * $author$project$Phutball$square_width) : (0.45 * $author$project$Phutball$square_width);
-		var ball_coords = $author$project$Phutball$loc(ball.coords);
-		var x = mouse.draggingBall ? mouse.current.x : ball_coords.x;
-		var y = mouse.draggingBall ? mouse.current.y : ball_coords.y;
+var $author$project$Phutball$drawCircle = F3(
+	function (coords, radius, c) {
 		return A2(
 			$elm$svg$Svg$circle,
 			_List_fromArray(
 				[
 					$elm$svg$Svg$Attributes$cx(
-					$elm$core$String$fromInt(x)),
+					$elm$core$String$fromInt(coords.x)),
 					$elm$svg$Svg$Attributes$cy(
-					$elm$core$String$fromInt(y)),
+					$elm$core$String$fromInt(coords.y)),
 					$elm$svg$Svg$Attributes$r(
-					$elm$core$String$fromFloat(rad)),
-					$elm$svg$Svg$Attributes$fill('white')
+					$elm$core$String$fromFloat(radius)),
+					$elm$svg$Svg$Attributes$fill(c)
 				]),
 			_List_Nil);
 	});
-var $elm$svg$Svg$line = $elm$svg$Svg$trustedNode('line');
+var $author$project$Phutball$loc = function (coords) {
+	return A2($author$project$Phutball$Coords, $author$project$Phutball$square_width * (coords.x + 1), $author$project$Phutball$square_width * (coords.y + 1));
+};
+var $elm$svg$Svg$path = $elm$svg$Svg$trustedNode('path');
 var $elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
 var $elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
+var $author$project$Phutball$drawBall = F2(
+	function (ball, mouse) {
+		var rad = mouse.draggingBall ? (0.65 * $author$project$Phutball$square_width) : (0.45 * $author$project$Phutball$square_width);
+		var history_circles = A2(
+			$elm$core$List$map,
+			function (coords) {
+				return A3(
+					$author$project$Phutball$drawCircle,
+					$author$project$Phutball$loc(coords),
+					0.3 * $author$project$Phutball$square_width,
+					'white');
+			},
+			ball.history);
+		var coords_to_str = function (coords) {
+			return 'M ' + ($elm$core$String$fromInt(coords.x) + (',' + $elm$core$String$fromInt(coords.y)));
+		};
+		var history_path = A2(
+			$elm$svg$Svg$path,
+			_List_fromArray(
+				[
+					$elm$svg$Svg$Attributes$d(
+					$elm$core$String$concat(
+						A2(
+							$elm$core$List$map,
+							function (x) {
+								return coords_to_str(
+									$author$project$Phutball$loc(x));
+							},
+							ball.history))),
+					$elm$svg$Svg$Attributes$stroke('red'),
+					$elm$svg$Svg$Attributes$strokeWidth('5')
+				]),
+			_List_Nil);
+		var c = mouse.draggingBall ? mouse.current : $author$project$Phutball$loc(ball.coords);
+		var current_circle = A3($author$project$Phutball$drawCircle, c, rad, 'white');
+		var ball_coords = $author$project$Phutball$loc(ball.coords);
+		return _Utils_ap(
+			history_circles,
+			_Utils_ap(
+				_List_fromArray(
+					[history_path]),
+				_List_fromArray(
+					[current_circle])));
+	});
+var $elm$svg$Svg$line = $elm$svg$Svg$trustedNode('line');
 var $elm$svg$Svg$Attributes$x1 = _VirtualDom_attribute('x1');
 var $elm$svg$Svg$Attributes$x2 = _VirtualDom_attribute('x2');
 var $elm$svg$Svg$Attributes$y1 = _VirtualDom_attribute('y1');
@@ -6032,10 +6096,7 @@ var $author$project$Phutball$drawGame = F2(
 						$author$project$Phutball$endZones,
 						_Utils_ap(
 							$author$project$Phutball$people(game.people),
-							_List_fromArray(
-								[
-									A2($author$project$Phutball$drawBall, game.ball, mouse)
-								]))))));
+							A2($author$project$Phutball$drawBall, game.ball, mouse))))));
 	});
 var $author$project$Phutball$view = function (model) {
 	switch (model.$) {

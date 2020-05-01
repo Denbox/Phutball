@@ -20,8 +20,7 @@ type alias Coords =
 
 type alias Ball =
   { coords : Coords
-  -- , drawLoc : Coords
-  -- , history : List Coords
+  , history : List Coords
   }
 
 type alias MouseData =
@@ -90,7 +89,7 @@ peopleInBetween coords game =
     n = Basics.max (abs (p2.x-p1.x)) (abs (p2.y-p1.y))
     between = List.map (\i -> Coords (p1.x+dx*i) (p1.y+dy*i)) (List.range 1 (n-1))
   in
-    if n == 0 || n == 1 then
+    if n == 1 then
       False
     else
       List.all (\x -> List.member x game.people) between
@@ -107,7 +106,7 @@ main =
     , view = view
   }
 
-game_init = Game (Ball (Coords 7 9)) [] X
+game_init = Game (Ball (Coords 7 9) []) [] X
 mouse_init = MouseData False (Coords -1 -1) (Coords -1 -1)
 
 init : () -> (Model, Cmd Msg)
@@ -135,7 +134,10 @@ update msg model =
           if mouse.draggingBall then
             -- try to place ball
             if validDrag (toGrid coords) game then
-              (Playing {game | ball = (Ball (toGrid coords))} {mouse | draggingBall = False, current = coords}, Cmd.none)
+              let
+                ball_and_history = (Ball (toGrid coords) (game.ball.history ++ [game.ball.coords]))
+              in
+                (Playing {game | ball = ball_and_history} {mouse | draggingBall = False, current = coords}, Cmd.none)
             else
               (Playing game {mouse | draggingBall = False, current = coords}, Cmd.none)
           else
@@ -146,14 +148,6 @@ update msg model =
               (Playing game {mouse | current = coords}, Cmd.none)
     _ ->
       (model, Cmd.none)
-
--- updateBall : Msg -> Ball -> Ball
--- updateBall msg ball =
-  -- case msg of
-    -- MouseDown coords  -> {ball | dragging = True}
-    -- MouseMove coords  -> {ball | drawLoc = coords}
-    -- MouseUp   coords  -> Ball False coords (loc coords)
-
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -176,7 +170,6 @@ decodeX      = (Json.Decode.field "pageX" Json.Decode.int)
 decodeY      = (Json.Decode.field "pageY" Json.Decode.int)
 decodeCoords = (Json.Decode.map2 Coords decodeX decodeY)
 
--- idea: shift and resize game grid so that each coord is 1 unit apart to use round function and loc
 toGrid : Coords -> Coords
 toGrid coords =
   let
@@ -195,7 +188,7 @@ view model =
 drawGame : Game -> MouseData -> Html Msg
 drawGame game mouse =
   svg [width (String.fromInt (w + 2 * margin)), height (String.fromInt (h + 2 * margin))]
-  ([background] ++ grid ++ endZones ++ people game.people ++ [drawBall game.ball mouse])
+  ([background] ++ grid ++ endZones ++ people game.people ++ (drawBall game.ball mouse))
 
 horizontal : Int -> String -> Int -> Svg msg
 horizontal y color width = line
@@ -215,6 +208,14 @@ vertical x color width = line
   , y2 <| String.fromInt <| square_width * (19 + 1)
   , stroke color
   , strokeWidth <| String.fromInt width
+  ] []
+
+drawCircle : Coords -> Float -> String -> Svg msg
+drawCircle coords radius c = circle
+  [ cx <| String.fromInt coords.x
+  , cy <| String.fromInt coords.y
+  , r  <| String.fromFloat radius
+  , fill c
   ] []
 
 stone : Coords -> String -> Svg msg
@@ -237,21 +238,20 @@ background = rect
 endZones : List (Svg msg)
 endZones = [horizontal 0 "DarkBlue" 5, horizontal 20 "DarkBlue" 5]
 
-drawBall : Ball -> MouseData -> Svg Msg
+drawBall : Ball -> MouseData -> List (Svg Msg)
 drawBall ball mouse =
   let
     ball_coords  = loc ball.coords
-    x   = if mouse.draggingBall then mouse.current.x else ball_coords.x
-    y   = if mouse.draggingBall then mouse.current.y else ball_coords.y
+    c = if mouse.draggingBall then mouse.current else (loc ball.coords)
     rad = if mouse.draggingBall then 0.65 * square_width else 0.45 * square_width
+    history_circles = List.map (\coords -> drawCircle (loc coords) (0.3 * square_width) "white") ball.history
+    current_circle = drawCircle c rad "white"
+    coords_to_str coords = "M " ++ String.fromInt coords.x ++ "," ++ String.fromInt coords.y
+    history_path = Svg.path [d (String.concat (List.map (\x -> coords_to_str (loc x)) ball.history)), stroke "red", strokeWidth "5"] []
   in
-    circle
-    [ cx <| String.fromInt x
-    , cy <| String.fromInt y
-    , r  <| String.fromFloat rad
-    , fill "white"
-    -- , Svg.Events.onMouseDown BeginDrag
-    ] []
+    history_circles ++ [history_path] ++ [current_circle]
+    -- (drawCircle c rad "white") ::
+    -- [drawCircle c rad "white"]
 
 people : List Coords -> List (Svg msg)
 people coords_list = List.map (\x -> stone x "black") coords_list
