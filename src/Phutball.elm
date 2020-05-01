@@ -246,8 +246,8 @@ drawBall ball mouse =
     rad = if mouse.draggingBall then 0.65 * square_width else 0.45 * square_width
     history_circles = List.map (\coords -> drawCircle (loc coords) (0.3 * square_width) "white") ball.history
     current_circle = drawCircle c rad "white"
-    coords_to_str coords = "M " ++ String.fromInt coords.x ++ "," ++ String.fromInt coords.y
-    history_path = Svg.path [d (String.concat (List.map (\x -> coords_to_str (loc x)) ball.history)), stroke "red", strokeWidth "5"] []
+    coords_to_str coords = String.fromInt coords.x ++ " " ++ String.fromInt coords.y
+    history_path = Svg.path [d ("M " ++ String.join " L " (List.map (\x -> coords_to_str (loc x)) (ball.history++[ball.coords]))), stroke "red", strokeWidth "2", fillOpacity "0", strokeLinecap "round"] []
   in
     history_circles ++ [history_path] ++ [current_circle]
     -- (drawCircle c rad "white") ::

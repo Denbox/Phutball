@@ -5911,9 +5911,6 @@ var $author$project$Phutball$background = A2(
 			$elm$svg$Svg$Attributes$fill('BurlyWood')
 		]),
 	_List_Nil);
-var $elm$core$String$concat = function (strings) {
-	return A2($elm$core$String$join, '', strings);
-};
 var $elm$svg$Svg$Attributes$d = _VirtualDom_attribute('d');
 var $elm$svg$Svg$circle = $elm$svg$Svg$trustedNode('circle');
 var $elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
@@ -5936,11 +5933,13 @@ var $author$project$Phutball$drawCircle = F3(
 				]),
 			_List_Nil);
 	});
+var $elm$svg$Svg$Attributes$fillOpacity = _VirtualDom_attribute('fill-opacity');
 var $author$project$Phutball$loc = function (coords) {
 	return A2($author$project$Phutball$Coords, $author$project$Phutball$square_width * (coords.x + 1), $author$project$Phutball$square_width * (coords.y + 1));
 };
 var $elm$svg$Svg$path = $elm$svg$Svg$trustedNode('path');
 var $elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
+var $elm$svg$Svg$Attributes$strokeLinecap = _VirtualDom_attribute('stroke-linecap');
 var $elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
 var $author$project$Phutball$drawBall = F2(
 	function (ball, mouse) {
@@ -5956,23 +5955,30 @@ var $author$project$Phutball$drawBall = F2(
 			},
 			ball.history);
 		var coords_to_str = function (coords) {
-			return 'M ' + ($elm$core$String$fromInt(coords.x) + (',' + $elm$core$String$fromInt(coords.y)));
+			return $elm$core$String$fromInt(coords.x) + (' ' + $elm$core$String$fromInt(coords.y));
 		};
 		var history_path = A2(
 			$elm$svg$Svg$path,
 			_List_fromArray(
 				[
 					$elm$svg$Svg$Attributes$d(
-					$elm$core$String$concat(
+					'M ' + A2(
+						$elm$core$String$join,
+						' L ',
 						A2(
 							$elm$core$List$map,
 							function (x) {
 								return coords_to_str(
 									$author$project$Phutball$loc(x));
 							},
-							ball.history))),
+							_Utils_ap(
+								ball.history,
+								_List_fromArray(
+									[ball.coords]))))),
 					$elm$svg$Svg$Attributes$stroke('red'),
-					$elm$svg$Svg$Attributes$strokeWidth('5')
+					$elm$svg$Svg$Attributes$strokeWidth('2'),
+					$elm$svg$Svg$Attributes$fillOpacity('0'),
+					$elm$svg$Svg$Attributes$strokeLinecap('round')
 				]),
 			_List_Nil);
 		var c = mouse.draggingBall ? mouse.current : $author$project$Phutball$loc(ball.coords);
