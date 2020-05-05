@@ -151,9 +151,11 @@ update msg model =
               (Playing {game | ball = Ball (toGrid coords) [] [], people = (removeJumped game), turn = (opposite game.turn)} {mouse | draggingBall = False, current = coords}, Cmd.none)
             else
               (Playing game {mouse | draggingBall = False, current = coords}, Cmd.none)
+          else if (toGrid coords) == Maybe.withDefault (Coords -1 -1) (List.head game.ball.landed) then
+            (Playing {game | ball = Ball (toGrid coords) [] []} {mouse | draggingBall = False, current = coords}, Cmd.none)
           else
             -- try to place person
-            if placeable (toGrid coords) game && mouse.start == (toGrid coords) then
+            if placeable (toGrid coords) game && mouse.start == (toGrid coords)  && (List.isEmpty game.ball.jumped) then
               (Playing {game | people = (toGrid coords) :: game.people, turn = (opposite game.turn)} {mouse | current = coords}, Cmd.none)
             else
               (Playing game {mouse | current = coords}, Cmd.none)
