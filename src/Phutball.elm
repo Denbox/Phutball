@@ -147,6 +147,8 @@ update msg model =
               in
                 -- (Playing {game | ball = ball_and_history, people = (removeJumped (toGrid coords) game)} {mouse | draggingBall = False, current = coords}, Cmd.none)
                 (Playing {game | ball = ball_and_history} {mouse | draggingBall = False, current = coords}, Cmd.none)
+            else if ((toGrid coords) == game.ball.coords) && (not <| List.isEmpty game.ball.jumped) then
+              (Playing {game | ball = Ball (toGrid coords) [] [], people = (removeJumped game), turn = (opposite game.turn)} {mouse | draggingBall = False, current = coords}, Cmd.none)
             else
               (Playing game {mouse | draggingBall = False, current = coords}, Cmd.none)
           else

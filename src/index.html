@@ -5650,6 +5650,13 @@ var $author$project$Phutball$subscriptions = function (model) {
 		return $elm$core$Platform$Sub$none;
 	}
 };
+var $elm$core$List$isEmpty = function (xs) {
+	if (!xs.b) {
+		return true;
+	} else {
+		return false;
+	}
+};
 var $elm$core$Basics$abs = function (n) {
 	return (n < 0) ? (-n) : n;
 };
@@ -5668,6 +5675,7 @@ var $author$project$Phutball$jumpedSquares = F2(
 			},
 			A2($elm$core$List$range, 1, n - 1));
 	});
+var $elm$core$Basics$not = _Basics_not;
 var $author$project$Phutball$O = {$: 'O'};
 var $author$project$Phutball$opposite = function (p) {
 	if (p.$ === 'X') {
@@ -5706,7 +5714,6 @@ var $elm$core$List$member = F2(
 			},
 			xs);
 	});
-var $elm$core$Basics$not = _Basics_not;
 var $author$project$Phutball$empty = F2(
 	function (coords, game) {
 		return !A2(
@@ -5727,6 +5734,25 @@ var $author$project$Phutball$placeable = F2(
 	function (coords, game) {
 		return A2($author$project$Phutball$empty, coords, game) && $author$project$Phutball$inPlaceableBounds(coords);
 	});
+var $elm$core$List$filter = F2(
+	function (isGood, list) {
+		return A3(
+			$elm$core$List$foldr,
+			F2(
+				function (x, xs) {
+					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
+				}),
+			_List_Nil,
+			list);
+	});
+var $author$project$Phutball$removeJumped = function (game) {
+	return A2(
+		$elm$core$List$filter,
+		function (x) {
+			return !A2($elm$core$List$member, x, game.ball.jumped);
+		},
+		game.people);
+};
 var $elm$core$Basics$round = _Basics_round;
 var $author$project$Phutball$square_width = 35;
 var $author$project$Phutball$toGrid = function (coords) {
@@ -5860,14 +5886,37 @@ var $author$project$Phutball$update = F2(
 										{current: coords, draggingBall: false})),
 								$elm$core$Platform$Cmd$none);
 						} else {
-							return _Utils_Tuple2(
-								A2(
-									$author$project$Phutball$Playing,
-									game,
-									_Utils_update(
-										mouse,
-										{current: coords, draggingBall: false})),
-								$elm$core$Platform$Cmd$none);
+							if (_Utils_eq(
+								$author$project$Phutball$toGrid(coords),
+								game.ball.coords) && (!$elm$core$List$isEmpty(game.ball.jumped))) {
+								return _Utils_Tuple2(
+									A2(
+										$author$project$Phutball$Playing,
+										_Utils_update(
+											game,
+											{
+												ball: A3(
+													$author$project$Phutball$Ball,
+													$author$project$Phutball$toGrid(coords),
+													_List_Nil,
+													_List_Nil),
+												people: $author$project$Phutball$removeJumped(game),
+												turn: $author$project$Phutball$opposite(game.turn)
+											}),
+										_Utils_update(
+											mouse,
+											{current: coords, draggingBall: false})),
+									$elm$core$Platform$Cmd$none);
+							} else {
+								return _Utils_Tuple2(
+									A2(
+										$author$project$Phutball$Playing,
+										game,
+										_Utils_update(
+											mouse,
+											{current: coords, draggingBall: false})),
+									$elm$core$Platform$Cmd$none);
+							}
 						}
 					} else {
 						if (A2(
