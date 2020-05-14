@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Phutball</title>
+  <title>V2</title>
   <style>body { padding: 0; margin: 0; }</style>
 </head>
 
@@ -5158,67 +5158,74 @@ var $elm$core$Task$perform = F2(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
 var $elm$browser$Browser$element = _Browser_element;
-var $author$project$Phutball$Playing = F2(
-	function (a, b) {
-		return {$: 'Playing', a: a, b: b};
+var $author$project$V2$Ball = F3(
+	function (position, history, dragging) {
+		return {dragging: dragging, history: history, position: position};
 	});
-var $author$project$Phutball$Ball = F3(
-	function (coords, landed, jumped) {
-		return {coords: coords, jumped: jumped, landed: landed};
-	});
-var $author$project$Phutball$Coords = F2(
-	function (x, y) {
-		return {x: x, y: y};
-	});
-var $author$project$Phutball$Game = F3(
+var $author$project$V2$Game = F3(
 	function (ball, people, turn) {
 		return {ball: ball, people: people, turn: turn};
 	});
-var $author$project$Phutball$X = {$: 'X'};
-var $author$project$Phutball$game_init = A3(
-	$author$project$Phutball$Game,
-	A3(
-		$author$project$Phutball$Ball,
-		A2($author$project$Phutball$Coords, 7, 9),
-		_List_Nil,
-		_List_Nil),
-	_List_Nil,
-	$author$project$Phutball$X);
-var $author$project$Phutball$MouseData = F3(
-	function (draggingBall, start, current) {
-		return {current: current, draggingBall: draggingBall, start: start};
+var $author$project$V2$Mouse = F2(
+	function (pressed, position) {
+		return {position: position, pressed: pressed};
 	});
-var $elm$core$Basics$negate = function (n) {
-	return -n;
-};
-var $author$project$Phutball$mouse_init = A3(
-	$author$project$Phutball$MouseData,
-	false,
-	A2($author$project$Phutball$Coords, -1, -1),
-	A2($author$project$Phutball$Coords, -1, -1));
+var $author$project$V2$Playing = F2(
+	function (a, b) {
+		return {$: 'Playing', a: a, b: b};
+	});
+var $author$project$V2$Point = F2(
+	function (x, y) {
+		return {x: x, y: y};
+	});
+var $author$project$V2$X = {$: 'X'};
+var $author$project$V2$grid_size = 35;
+var $author$project$V2$margin = $author$project$V2$grid_size;
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
-var $author$project$Phutball$init = function (_v0) {
+var $author$project$V2$init = function (_v0) {
+	var mouse = A2($author$project$V2$Mouse, false, $elm$core$Maybe$Nothing);
+	var ball_pos = A2($author$project$V2$Point, $author$project$V2$margin + (7 * $author$project$V2$grid_size), $author$project$V2$margin + (9 * $author$project$V2$grid_size));
+	var game = A3(
+		$author$project$V2$Game,
+		A3($author$project$V2$Ball, ball_pos, _List_Nil, false),
+		_List_Nil,
+		$author$project$V2$X);
 	return _Utils_Tuple2(
-		A2($author$project$Phutball$Playing, $author$project$Phutball$game_init, $author$project$Phutball$mouse_init),
+		A2($author$project$V2$Playing, game, mouse),
 		$elm$core$Platform$Cmd$none);
 };
-var $author$project$Phutball$MouseDown = function (a) {
+var $author$project$V2$MouseDown = function (a) {
 	return {$: 'MouseDown', a: a};
 };
-var $author$project$Phutball$MouseMove = function (a) {
+var $author$project$V2$MouseMove = function (a) {
 	return {$: 'MouseMove', a: a};
 };
-var $author$project$Phutball$MouseUp = function (a) {
+var $author$project$V2$MouseUp = function (a) {
 	return {$: 'MouseUp', a: a};
 };
 var $elm$core$Platform$Sub$batch = _Platform_batch;
 var $elm$json$Json$Decode$field = _Json_decodeField;
 var $elm$json$Json$Decode$int = _Json_decodeInt;
-var $author$project$Phutball$decodeX = A2($elm$json$Json$Decode$field, 'pageX', $elm$json$Json$Decode$int);
-var $author$project$Phutball$decodeY = A2($elm$json$Json$Decode$field, 'pageY', $elm$json$Json$Decode$int);
-var $author$project$Phutball$decodeCoords = A3($elm$json$Json$Decode$map2, $author$project$Phutball$Coords, $author$project$Phutball$decodeX, $author$project$Phutball$decodeY);
-var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
+var $author$project$V2$decodeX = A2($elm$json$Json$Decode$field, 'pageX', $elm$json$Json$Decode$int);
+var $author$project$V2$decodeY = A2($elm$json$Json$Decode$field, 'pageY', $elm$json$Json$Decode$int);
+var $elm$core$Basics$round = _Basics_round;
+var $author$project$V2$snapToGrid = function (p) {
+	var snap = function (x) {
+		return ($elm$core$Basics$round((x - $author$project$V2$margin) / $author$project$V2$grid_size) * $author$project$V2$grid_size) + $author$project$V2$margin;
+	};
+	return A2(
+		$author$project$V2$Point,
+		snap(p.x),
+		snap(p.y));
+};
+var $author$project$V2$toGrid = F2(
+	function (x, y) {
+		return $author$project$V2$snapToGrid(
+			A2($author$project$V2$Point, x, y));
+	});
+var $author$project$V2$decodeGridXY = A3($elm$json$Json$Decode$map2, $author$project$V2$toGrid, $author$project$V2$decodeX, $author$project$V2$decodeY);
+var $author$project$V2$decodeXY = A3($elm$json$Json$Decode$map2, $author$project$V2$Point, $author$project$V2$decodeX, $author$project$V2$decodeY);
 var $elm$browser$Browser$Events$Document = {$: 'Document'};
 var $elm$browser$Browser$Events$MySub = F3(
 	function (a, b, c) {
@@ -5622,616 +5629,307 @@ var $elm$browser$Browser$Events$on = F3(
 var $elm$browser$Browser$Events$onMouseDown = A2($elm$browser$Browser$Events$on, $elm$browser$Browser$Events$Document, 'mousedown');
 var $elm$browser$Browser$Events$onMouseMove = A2($elm$browser$Browser$Events$on, $elm$browser$Browser$Events$Document, 'mousemove');
 var $elm$browser$Browser$Events$onMouseUp = A2($elm$browser$Browser$Events$on, $elm$browser$Browser$Events$Document, 'mouseup');
-var $author$project$Phutball$subscriptions = function (model) {
-	if (model.$ === 'Playing') {
+var $author$project$V2$subscriptions = function (model) {
+	var mouse = model.b;
+	return mouse.pressed ? $elm$core$Platform$Sub$batch(
+		_List_fromArray(
+			[
+				$elm$browser$Browser$Events$onMouseMove(
+				A2($elm$json$Json$Decode$map, $author$project$V2$MouseMove, $author$project$V2$decodeXY)),
+				$elm$browser$Browser$Events$onMouseUp(
+				A2($elm$json$Json$Decode$map, $author$project$V2$MouseUp, $author$project$V2$decodeGridXY))
+			])) : $elm$core$Platform$Sub$batch(
+		_List_fromArray(
+			[
+				$elm$browser$Browser$Events$onMouseDown(
+				A2($elm$json$Json$Decode$map, $author$project$V2$MouseDown, $author$project$V2$decodeGridXY)),
+				$elm$browser$Browser$Events$onMouseUp(
+				A2($elm$json$Json$Decode$map, $author$project$V2$MouseUp, $author$project$V2$decodeGridXY))
+			]));
+};
+var $author$project$V2$update = F2(
+	function (msg, model) {
 		var game = model.a;
 		var mouse = model.b;
-		var _v1 = mouse.draggingBall;
-		if (_v1) {
-			return $elm$core$Platform$Sub$batch(
-				_List_fromArray(
-					[
-						$elm$browser$Browser$Events$onMouseMove(
-						A2($elm$json$Json$Decode$map, $author$project$Phutball$MouseMove, $author$project$Phutball$decodeCoords)),
-						$elm$browser$Browser$Events$onMouseUp(
-						A2($elm$json$Json$Decode$map, $author$project$Phutball$MouseUp, $author$project$Phutball$decodeCoords))
-					]));
-		} else {
-			return $elm$core$Platform$Sub$batch(
-				_List_fromArray(
-					[
-						$elm$browser$Browser$Events$onMouseDown(
-						A2($elm$json$Json$Decode$map, $author$project$Phutball$MouseDown, $author$project$Phutball$decodeCoords)),
-						$elm$browser$Browser$Events$onMouseUp(
-						A2($elm$json$Json$Decode$map, $author$project$Phutball$MouseUp, $author$project$Phutball$decodeCoords))
-					]));
-		}
-	} else {
-		return $elm$core$Platform$Sub$none;
-	}
-};
-var $elm$core$List$head = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return $elm$core$Maybe$Just(x);
-	} else {
-		return $elm$core$Maybe$Nothing;
-	}
-};
-var $elm$core$List$isEmpty = function (xs) {
-	if (!xs.b) {
-		return true;
-	} else {
-		return false;
-	}
-};
-var $elm$core$Basics$abs = function (n) {
-	return (n < 0) ? (-n) : n;
-};
-var $author$project$Phutball$jumpedSquares = F2(
-	function (p1, p2) {
-		var n = A2(
-			$elm$core$Basics$max,
-			$elm$core$Basics$abs(p2.x - p1.x),
-			$elm$core$Basics$abs(p2.y - p1.y));
-		var dy = _Utils_eq(p1.y, p2.y) ? 0 : (($elm$core$Basics$abs(p2.y - p1.y) / (p2.y - p1.y)) | 0);
-		var dx = _Utils_eq(p1.x, p2.x) ? 0 : (($elm$core$Basics$abs(p2.x - p1.x) / (p2.x - p1.x)) | 0);
-		return A2(
-			$elm$core$List$map,
-			function (i) {
-				return A2($author$project$Phutball$Coords, p1.x + (dx * i), p1.y + (dy * i));
-			},
-			A2($elm$core$List$range, 1, n - 1));
-	});
-var $elm$core$Basics$not = _Basics_not;
-var $author$project$Phutball$O = {$: 'O'};
-var $author$project$Phutball$opposite = function (p) {
-	if (p.$ === 'X') {
-		return $author$project$Phutball$O;
-	} else {
-		return $author$project$Phutball$X;
-	}
-};
-var $elm$core$List$any = F2(
-	function (isOkay, list) {
-		any:
-		while (true) {
-			if (!list.b) {
-				return false;
-			} else {
-				var x = list.a;
-				var xs = list.b;
-				if (isOkay(x)) {
-					return true;
-				} else {
-					var $temp$isOkay = isOkay,
-						$temp$list = xs;
-					isOkay = $temp$isOkay;
-					list = $temp$list;
-					continue any;
-				}
-			}
-		}
-	});
-var $elm$core$List$member = F2(
-	function (x, xs) {
-		return A2(
-			$elm$core$List$any,
-			function (a) {
-				return _Utils_eq(a, x);
-			},
-			xs);
-	});
-var $author$project$Phutball$empty = F2(
-	function (coords, game) {
-		return !A2(
-			$elm$core$List$member,
-			coords,
-			A2($elm$core$List$cons, game.ball.coords, game.people));
-	});
-var $author$project$Phutball$inPlaceableBounds = function (coords) {
-	return A2(
-		$elm$core$List$member,
-		coords.x,
-		A2($elm$core$List$range, 0, 14)) && A2(
-		$elm$core$List$member,
-		coords.y,
-		A2($elm$core$List$range, 1, 19));
-};
-var $author$project$Phutball$placeable = F2(
-	function (coords, game) {
-		return A2($author$project$Phutball$empty, coords, game) && $author$project$Phutball$inPlaceableBounds(coords);
-	});
-var $elm$core$List$filter = F2(
-	function (isGood, list) {
-		return A3(
-			$elm$core$List$foldr,
-			F2(
-				function (x, xs) {
-					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
-				}),
-			_List_Nil,
-			list);
-	});
-var $author$project$Phutball$removeJumped = function (game) {
-	return A2(
-		$elm$core$List$filter,
-		function (x) {
-			return !A2($elm$core$List$member, x, game.ball.jumped);
-		},
-		game.people);
-};
-var $elm$core$Basics$round = _Basics_round;
-var $author$project$Phutball$square_width = 35;
-var $author$project$Phutball$toGrid = function (coords) {
-	var y_coord = $elm$core$Basics$round(coords.y / $author$project$Phutball$square_width) - 1;
-	var x_coord = $elm$core$Basics$round(coords.x / $author$project$Phutball$square_width) - 1;
-	return A2($author$project$Phutball$Coords, x_coord, y_coord);
-};
-var $author$project$Phutball$inDraggableBounds = function (coords) {
-	return A2(
-		$elm$core$List$member,
-		coords.x,
-		A2($elm$core$List$range, 0, 14)) && A2(
-		$elm$core$List$member,
-		coords.y,
-		A2($elm$core$List$range, 0, 20));
-};
-var $author$project$Phutball$isDoubleJump = F2(
-	function (start, game) {
-		return A2(
-			$elm$core$List$any,
-			function (x) {
-				return A2($elm$core$List$member, x, game.ball.jumped);
-			},
-			A2($author$project$Phutball$jumpedSquares, start, game.ball.coords));
-	});
-var $author$project$Phutball$cross = F2(
-	function (start, end) {
-		return _Utils_eq(start.x, end.x) || _Utils_eq(start.y, end.y);
-	});
-var $author$project$Phutball$diag = F2(
-	function (start, end) {
-		return _Utils_eq(
-			$elm$core$Basics$abs(start.x - end.x),
-			$elm$core$Basics$abs(start.y - end.y));
-	});
-var $author$project$Phutball$allowedLine = F2(
-	function (start, end) {
-		return A2($author$project$Phutball$diag, start, end) || A2($author$project$Phutball$cross, start, end);
-	});
-var $elm$core$Basics$composeL = F3(
-	function (g, f, x) {
-		return g(
-			f(x));
-	});
-var $elm$core$List$all = F2(
-	function (isOkay, list) {
-		return !A2(
-			$elm$core$List$any,
-			A2($elm$core$Basics$composeL, $elm$core$Basics$not, isOkay),
-			list);
-	});
-var $author$project$Phutball$peopleInBetween = F2(
-	function (coords, game) {
-		return (A2(
-			$elm$core$Basics$max,
-			$elm$core$Basics$abs(coords.x - game.ball.coords.x),
-			$elm$core$Basics$abs(coords.y - game.ball.coords.y)) === 1) ? false : A2(
-			$elm$core$List$all,
-			function (x) {
-				return A2($elm$core$List$member, x, game.people);
-			},
-			A2($author$project$Phutball$jumpedSquares, coords, game.ball.coords));
-	});
-var $author$project$Phutball$validJump = F2(
-	function (coords, game) {
-		return A2($author$project$Phutball$allowedLine, game.ball.coords, coords) && A2($author$project$Phutball$peopleInBetween, coords, game);
-	});
-var $author$project$Phutball$validDrag = F2(
-	function (coords, game) {
-		return A2($author$project$Phutball$empty, coords, game) && ($author$project$Phutball$inDraggableBounds(coords) && (A2($author$project$Phutball$validJump, coords, game) && (!A2($author$project$Phutball$isDoubleJump, coords, game))));
-	});
-var $elm$core$Maybe$withDefault = F2(
-	function (_default, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return value;
-		} else {
-			return _default;
-		}
-	});
-var $author$project$Phutball$update = F2(
-	function (msg, model) {
-		if (model.$ === 'Playing') {
-			var game = model.a;
-			var mouse = model.b;
-			switch (msg.$) {
-				case 'MouseDown':
-					var coords = msg.a;
-					var dragging = _Utils_eq(
-						$author$project$Phutball$toGrid(coords),
-						game.ball.coords) ? true : false;
-					var mouse_data = A3(
-						$author$project$Phutball$MouseData,
-						dragging,
-						$author$project$Phutball$toGrid(coords),
-						coords);
-					return _Utils_Tuple2(
-						A2($author$project$Phutball$Playing, game, mouse_data),
-						$elm$core$Platform$Cmd$none);
-				case 'MouseMove':
-					var coords = msg.a;
+		switch (msg.$) {
+			case 'MouseDown':
+				var point = msg.a;
+				var new_mouse = _Utils_update(
+					mouse,
+					{pressed: true});
+				if (_Utils_eq(
+					$author$project$V2$snapToGrid(point),
+					game.ball.position)) {
+					var ball = game.ball;
+					var new_ball = _Utils_update(
+						ball,
+						{dragging: true});
 					return _Utils_Tuple2(
 						A2(
-							$author$project$Phutball$Playing,
-							game,
+							$author$project$V2$Playing,
 							_Utils_update(
-								mouse,
-								{current: coords})),
+								game,
+								{ball: new_ball}),
+							new_mouse),
 						$elm$core$Platform$Cmd$none);
-				default:
-					var coords = msg.a;
-					if (mouse.draggingBall) {
-						if (A2(
-							$author$project$Phutball$validDrag,
-							$author$project$Phutball$toGrid(coords),
-							game)) {
-							var people_jumped = _Utils_ap(
-								game.ball.jumped,
-								A2(
-									$author$project$Phutball$jumpedSquares,
-									game.ball.coords,
-									$author$project$Phutball$toGrid(coords)));
-							var landings = _Utils_ap(
-								game.ball.landed,
-								_List_fromArray(
-									[game.ball.coords]));
-							var ball_and_history = A3(
-								$author$project$Phutball$Ball,
-								$author$project$Phutball$toGrid(coords),
-								landings,
-								people_jumped);
-							return _Utils_Tuple2(
-								A2(
-									$author$project$Phutball$Playing,
-									_Utils_update(
-										game,
-										{ball: ball_and_history}),
-									_Utils_update(
-										mouse,
-										{current: coords, draggingBall: false})),
-								$elm$core$Platform$Cmd$none);
-						} else {
-							if (_Utils_eq(
-								$author$project$Phutball$toGrid(coords),
-								game.ball.coords) && (!$elm$core$List$isEmpty(game.ball.jumped))) {
-								return _Utils_Tuple2(
-									A2(
-										$author$project$Phutball$Playing,
-										_Utils_update(
-											game,
-											{
-												ball: A3(
-													$author$project$Phutball$Ball,
-													$author$project$Phutball$toGrid(coords),
-													_List_Nil,
-													_List_Nil),
-												people: $author$project$Phutball$removeJumped(game),
-												turn: $author$project$Phutball$opposite(game.turn)
-											}),
-										_Utils_update(
-											mouse,
-											{current: coords, draggingBall: false})),
-									$elm$core$Platform$Cmd$none);
-							} else {
-								return _Utils_Tuple2(
-									A2(
-										$author$project$Phutball$Playing,
-										game,
-										_Utils_update(
-											mouse,
-											{current: coords, draggingBall: false})),
-									$elm$core$Platform$Cmd$none);
-							}
-						}
-					} else {
-						if (_Utils_eq(
-							$author$project$Phutball$toGrid(coords),
-							A2(
-								$elm$core$Maybe$withDefault,
-								A2($author$project$Phutball$Coords, -1, -1),
-								$elm$core$List$head(game.ball.landed)))) {
-							return _Utils_Tuple2(
-								A2(
-									$author$project$Phutball$Playing,
-									_Utils_update(
-										game,
-										{
-											ball: A3(
-												$author$project$Phutball$Ball,
-												$author$project$Phutball$toGrid(coords),
-												_List_Nil,
-												_List_Nil)
-										}),
-									_Utils_update(
-										mouse,
-										{current: coords, draggingBall: false})),
-								$elm$core$Platform$Cmd$none);
-						} else {
-							if (A2(
-								$author$project$Phutball$placeable,
-								$author$project$Phutball$toGrid(coords),
-								game) && (_Utils_eq(
-								mouse.start,
-								$author$project$Phutball$toGrid(coords)) && $elm$core$List$isEmpty(game.ball.jumped))) {
-								return _Utils_Tuple2(
-									A2(
-										$author$project$Phutball$Playing,
-										_Utils_update(
-											game,
-											{
-												people: A2(
-													$elm$core$List$cons,
-													$author$project$Phutball$toGrid(coords),
-													game.people),
-												turn: $author$project$Phutball$opposite(game.turn)
-											}),
-										_Utils_update(
-											mouse,
-											{current: coords})),
-									$elm$core$Platform$Cmd$none);
-							} else {
-								return _Utils_Tuple2(
-									A2(
-										$author$project$Phutball$Playing,
-										game,
-										_Utils_update(
-											mouse,
-											{current: coords})),
-									$elm$core$Platform$Cmd$none);
-							}
-						}
-					}
-			}
-		} else {
-			return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				} else {
+					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				}
+			case 'MouseMove':
+				var point = msg.a;
+				if (game.ball.dragging) {
+					var ball = game.ball;
+					var new_ball = _Utils_update(
+						ball,
+						{position: point});
+					return _Utils_Tuple2(
+						A2(
+							$author$project$V2$Playing,
+							_Utils_update(
+								game,
+								{ball: new_ball}),
+							mouse),
+						$elm$core$Platform$Cmd$none);
+				} else {
+					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				}
+			default:
+				var point = msg.a;
+				var new_mouse = _Utils_update(
+					mouse,
+					{pressed: false});
+				var ball = game.ball;
+				var new_ball = _Utils_update(
+					ball,
+					{
+						dragging: false,
+						position: $author$project$V2$snapToGrid(ball.position)
+					});
+				return _Utils_Tuple2(
+					A2(
+						$author$project$V2$Playing,
+						_Utils_update(
+							game,
+							{ball: new_ball}),
+						new_mouse),
+					$elm$core$Platform$Cmd$none);
 		}
 	});
+var $author$project$V2$end_rows = 2;
+var $author$project$V2$num_rows = 19;
+var $author$project$V2$game_height = ($author$project$V2$grid_size * (($author$project$V2$num_rows + $author$project$V2$end_rows) - 1)) + (2 * $author$project$V2$margin);
+var $author$project$V2$num_cols = 15;
+var $author$project$V2$game_width = ($author$project$V2$grid_size * ($author$project$V2$num_cols - 1)) + (2 * $author$project$V2$margin);
 var $elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
-var $author$project$Phutball$h = $author$project$Phutball$square_width * ((19 + 2) - 1);
 var $elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
-var $author$project$Phutball$margin = $author$project$Phutball$square_width;
 var $elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
 var $elm$svg$Svg$rect = $elm$svg$Svg$trustedNode('rect');
-var $author$project$Phutball$w = $author$project$Phutball$square_width * (15 - 1);
 var $elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
 var $elm$svg$Svg$Attributes$x = _VirtualDom_attribute('x');
 var $elm$svg$Svg$Attributes$y = _VirtualDom_attribute('y');
-var $author$project$Phutball$background = A2(
-	$elm$svg$Svg$rect,
-	_List_fromArray(
-		[
-			$elm$svg$Svg$Attributes$x(
-			$elm$core$String$fromInt(0)),
-			$elm$svg$Svg$Attributes$y(
-			$elm$core$String$fromInt(0)),
-			$elm$svg$Svg$Attributes$width(
-			$elm$core$String$fromInt($author$project$Phutball$w + (2 * $author$project$Phutball$margin))),
-			$elm$svg$Svg$Attributes$height(
-			$elm$core$String$fromInt($author$project$Phutball$h + (2 * $author$project$Phutball$margin))),
-			$elm$svg$Svg$Attributes$fill('BurlyWood')
-		]),
-	_List_Nil);
+var $author$project$V2$rectangle = F5(
+	function (left_x, top_y, w, h, color) {
+		return A2(
+			$elm$svg$Svg$rect,
+			_List_fromArray(
+				[
+					$elm$svg$Svg$Attributes$x(
+					$elm$core$String$fromInt(left_x)),
+					$elm$svg$Svg$Attributes$y(
+					$elm$core$String$fromInt(top_y)),
+					$elm$svg$Svg$Attributes$width(
+					$elm$core$String$fromInt(w)),
+					$elm$svg$Svg$Attributes$height(
+					$elm$core$String$fromInt(h)),
+					$elm$svg$Svg$Attributes$fill(color)
+				]),
+			_List_Nil);
+	});
+var $author$project$V2$drawBackground = A5($author$project$V2$rectangle, 0, 0, $author$project$V2$game_width, $author$project$V2$game_height, 'BurlyWood');
 var $elm$svg$Svg$circle = $elm$svg$Svg$trustedNode('circle');
 var $elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
 var $elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
 var $elm$core$String$fromFloat = _String_fromNumber;
 var $elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
-var $author$project$Phutball$drawCircle = F3(
-	function (coords, radius, c) {
+var $author$project$V2$drawCircle = F3(
+	function (point, radius, c) {
 		return A2(
 			$elm$svg$Svg$circle,
 			_List_fromArray(
 				[
 					$elm$svg$Svg$Attributes$cx(
-					$elm$core$String$fromInt(coords.x)),
+					$elm$core$String$fromInt(point.x)),
 					$elm$svg$Svg$Attributes$cy(
-					$elm$core$String$fromInt(coords.y)),
+					$elm$core$String$fromInt(point.y)),
 					$elm$svg$Svg$Attributes$r(
 					$elm$core$String$fromFloat(radius)),
 					$elm$svg$Svg$Attributes$fill(c)
 				]),
 			_List_Nil);
 	});
-var $author$project$Phutball$loc = function (coords) {
-	return A2($author$project$Phutball$Coords, $author$project$Phutball$square_width * (coords.x + 1), $author$project$Phutball$square_width * (coords.y + 1));
-};
 var $elm$svg$Svg$Attributes$points = _VirtualDom_attribute('points');
 var $elm$svg$Svg$polyline = $elm$svg$Svg$trustedNode('polyline');
 var $elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
 var $elm$svg$Svg$Attributes$strokeLinecap = _VirtualDom_attribute('stroke-linecap');
 var $elm$svg$Svg$Attributes$strokeLinejoin = _VirtualDom_attribute('stroke-linejoin');
 var $elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
-var $author$project$Phutball$drawBall = F2(
-	function (ball, mouse) {
-		var rad = mouse.draggingBall ? (0.65 * $author$project$Phutball$square_width) : (0.45 * $author$project$Phutball$square_width);
-		var coords_to_str = function (coords) {
-			return $elm$core$String$fromInt(coords.x) + (',' + $elm$core$String$fromInt(coords.y));
+var $author$project$V2$drawPath = F3(
+	function (points_list, color, width) {
+		var toStr = function (p) {
+			return $elm$core$String$fromInt(p.x) + (',' + $elm$core$String$fromInt(p.y));
 		};
 		var str_points = A2(
 			$elm$core$String$join,
 			' ',
-			A2(
-				$elm$core$List$map,
-				function (x) {
-					return coords_to_str(
-						$author$project$Phutball$loc(x));
-				},
-				_Utils_ap(
-					ball.landed,
-					_List_fromArray(
-						[ball.coords]))));
-		var history_path = A2(
+			A2($elm$core$List$map, toStr, points_list));
+		return A2(
 			$elm$svg$Svg$polyline,
 			_List_fromArray(
 				[
 					$elm$svg$Svg$Attributes$points(str_points),
-					$elm$svg$Svg$Attributes$stroke('red'),
-					$elm$svg$Svg$Attributes$strokeWidth('10'),
+					$elm$svg$Svg$Attributes$stroke(color),
+					$elm$svg$Svg$Attributes$strokeWidth(
+					$elm$core$String$fromInt(width)),
 					$elm$svg$Svg$Attributes$fill('none'),
 					$elm$svg$Svg$Attributes$strokeLinecap('round'),
 					$elm$svg$Svg$Attributes$strokeLinejoin('round')
 				]),
 			_List_Nil);
-		var c = mouse.draggingBall ? mouse.current : $author$project$Phutball$loc(ball.coords);
-		var current_circle = A3($author$project$Phutball$drawCircle, c, rad, 'white');
-		var ball_coords = $author$project$Phutball$loc(ball.coords);
-		return _List_fromArray(
-			[history_path, current_circle]);
+	});
+var $author$project$V2$drawBall = F2(
+	function (ball, mouse) {
+		var line_width = 10;
+		var line_color = 'red';
+		var ball_color = 'white';
+		var _v0 = mouse.pressed;
+		if (_v0) {
+			var _v1 = mouse.position;
+			if (_v1.$ === 'Nothing') {
+				return _List_fromArray(
+					[
+						A3($author$project$V2$drawPath, ball.history, line_color, line_width),
+						A3($author$project$V2$drawCircle, ball.position, 0.65 * $author$project$V2$grid_size, ball_color)
+					]);
+			} else {
+				var point = _v1.a;
+				return _List_fromArray(
+					[
+						A3(
+						$author$project$V2$drawPath,
+						_Utils_ap(
+							ball.history,
+							_List_fromArray(
+								[point])),
+						line_color,
+						line_width),
+						A3($author$project$V2$drawCircle, ball.position, 0.65 * $author$project$V2$grid_size, ball_color)
+					]);
+			}
+		} else {
+			return _List_fromArray(
+				[
+					A3($author$project$V2$drawPath, ball.history, line_color, line_width),
+					A3($author$project$V2$drawCircle, ball.position, 0.45 * $author$project$V2$grid_size, ball_color)
+				]);
+		}
 	});
 var $elm$svg$Svg$line = $elm$svg$Svg$trustedNode('line');
 var $elm$svg$Svg$Attributes$x1 = _VirtualDom_attribute('x1');
 var $elm$svg$Svg$Attributes$x2 = _VirtualDom_attribute('x2');
 var $elm$svg$Svg$Attributes$y1 = _VirtualDom_attribute('y1');
 var $elm$svg$Svg$Attributes$y2 = _VirtualDom_attribute('y2');
-var $author$project$Phutball$horizontal = F3(
+var $author$project$V2$horizontal = F3(
 	function (y, color, width) {
 		return A2(
 			$elm$svg$Svg$line,
 			_List_fromArray(
 				[
 					$elm$svg$Svg$Attributes$x1(
-					$elm$core$String$fromInt($author$project$Phutball$square_width * (0 + 1))),
+					$elm$core$String$fromInt($author$project$V2$grid_size * (0 + 1))),
 					$elm$svg$Svg$Attributes$y1(
-					$elm$core$String$fromInt($author$project$Phutball$square_width * (y + 1))),
+					$elm$core$String$fromInt($author$project$V2$grid_size * (y + 1))),
 					$elm$svg$Svg$Attributes$x2(
-					$elm$core$String$fromInt($author$project$Phutball$square_width * (14 + 1))),
+					$elm$core$String$fromInt($author$project$V2$grid_size * (14 + 1))),
 					$elm$svg$Svg$Attributes$y2(
-					$elm$core$String$fromInt($author$project$Phutball$square_width * (y + 1))),
+					$elm$core$String$fromInt($author$project$V2$grid_size * (y + 1))),
 					$elm$svg$Svg$Attributes$stroke(color),
 					$elm$svg$Svg$Attributes$strokeWidth(
 					$elm$core$String$fromInt(width))
 				]),
 			_List_Nil);
 	});
-var $author$project$Phutball$endZones = _List_fromArray(
+var $author$project$V2$drawEndZones = _List_fromArray(
 	[
-		A3($author$project$Phutball$horizontal, 0, 'DarkBlue', 5),
-		A3($author$project$Phutball$horizontal, 20, 'DarkBlue', 5)
+		A3($author$project$V2$horizontal, 0, 'DarkBlue', 5),
+		A3($author$project$V2$horizontal, 20, 'DarkBlue', 5),
+		A3($author$project$V2$horizontal, 1, 'DarkBlue', 5),
+		A3($author$project$V2$horizontal, 19, 'DarkBlue', 5)
 	]);
-var $author$project$Phutball$vertical = F3(
+var $author$project$V2$vertical = F3(
 	function (x, color, width) {
 		return A2(
 			$elm$svg$Svg$line,
 			_List_fromArray(
 				[
 					$elm$svg$Svg$Attributes$x1(
-					$elm$core$String$fromInt($author$project$Phutball$square_width * (x + 1))),
+					$elm$core$String$fromInt($author$project$V2$grid_size * (x + 1))),
 					$elm$svg$Svg$Attributes$y1(
-					$elm$core$String$fromInt($author$project$Phutball$square_width * (1 + 1))),
+					$elm$core$String$fromInt($author$project$V2$grid_size * (1 + 1))),
 					$elm$svg$Svg$Attributes$x2(
-					$elm$core$String$fromInt($author$project$Phutball$square_width * (x + 1))),
+					$elm$core$String$fromInt($author$project$V2$grid_size * (x + 1))),
 					$elm$svg$Svg$Attributes$y2(
-					$elm$core$String$fromInt($author$project$Phutball$square_width * (19 + 1))),
+					$elm$core$String$fromInt($author$project$V2$grid_size * (19 + 1))),
 					$elm$svg$Svg$Attributes$stroke(color),
 					$elm$svg$Svg$Attributes$strokeWidth(
 					$elm$core$String$fromInt(width))
 				]),
 			_List_Nil);
 	});
-var $author$project$Phutball$grid = _Utils_ap(
+var $author$project$V2$drawGrid = _Utils_ap(
 	A2(
 		$elm$core$List$map,
 		function (x) {
-			return A3($author$project$Phutball$vertical, x, 'black', 1);
+			return A3($author$project$V2$vertical, x, 'black', 1);
 		},
-		A2($elm$core$List$range, 0, 14)),
+		A2($elm$core$List$range, 0, $author$project$V2$num_cols - 1)),
 	A2(
 		$elm$core$List$map,
 		function (y) {
-			return A3($author$project$Phutball$horizontal, y, 'black', 1);
+			return A3($author$project$V2$horizontal, y, 'black', 1);
 		},
-		A2($elm$core$List$range, 1, 19)));
-var $elm$svg$Svg$Attributes$fillOpacity = _VirtualDom_attribute('fill-opacity');
-var $author$project$Phutball$stone = F3(
-	function (coords, color, opacity) {
-		return A2(
-			$elm$svg$Svg$circle,
-			_List_fromArray(
-				[
-					$elm$svg$Svg$Attributes$cx(
-					$elm$core$String$fromInt(
-						$author$project$Phutball$loc(coords).x)),
-					$elm$svg$Svg$Attributes$cy(
-					$elm$core$String$fromInt(
-						$author$project$Phutball$loc(coords).y)),
-					$elm$svg$Svg$Attributes$r(
-					$elm$core$String$fromFloat($author$project$Phutball$square_width * 0.45)),
-					$elm$svg$Svg$Attributes$fill(color),
-					$elm$svg$Svg$Attributes$fillOpacity(
-					$elm$core$String$fromFloat(opacity))
-				]),
-			_List_Nil);
-	});
-var $author$project$Phutball$people = function (game) {
-	return A2(
-		$elm$core$List$map,
-		function (x) {
-			return A3(
-				$author$project$Phutball$stone,
-				x,
-				'black',
-				A2($elm$core$List$member, x, game.ball.jumped) ? 0.5 : 1.0);
-		},
-		game.people);
-};
+		A2($elm$core$List$range, 1, ($author$project$V2$num_rows - 1) + 1)));
 var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
-var $author$project$Phutball$drawGame = F2(
+var $author$project$V2$drawGame = F2(
 	function (game, mouse) {
 		return A2(
 			$elm$svg$Svg$svg,
 			_List_fromArray(
 				[
 					$elm$svg$Svg$Attributes$width(
-					$elm$core$String$fromInt($author$project$Phutball$w + (2 * $author$project$Phutball$margin))),
+					$elm$core$String$fromInt($author$project$V2$game_width)),
 					$elm$svg$Svg$Attributes$height(
-					$elm$core$String$fromInt($author$project$Phutball$h + (2 * $author$project$Phutball$margin)))
+					$elm$core$String$fromInt($author$project$V2$game_height))
 				]),
 			_Utils_ap(
 				_List_fromArray(
-					[$author$project$Phutball$background]),
+					[$author$project$V2$drawBackground]),
 				_Utils_ap(
-					$author$project$Phutball$grid,
+					$author$project$V2$drawGrid,
 					_Utils_ap(
-						$author$project$Phutball$endZones,
-						_Utils_ap(
-							$author$project$Phutball$people(game),
-							A2($author$project$Phutball$drawBall, game.ball, mouse))))));
+						$author$project$V2$drawEndZones,
+						A2($author$project$V2$drawBall, game.ball, mouse)))));
 	});
-var $author$project$Phutball$view = function (model) {
-	switch (model.$) {
-		case 'Ready':
-			var game = model.a;
-			var mouse = model.b;
-			return A2($author$project$Phutball$drawGame, game, mouse);
-		case 'Playing':
-			var game = model.a;
-			var mouse = model.b;
-			return A2($author$project$Phutball$drawGame, game, mouse);
-		default:
-			var game = model.a;
-			var mouse = model.b;
-			return A2($author$project$Phutball$drawGame, game, mouse);
-	}
+var $author$project$V2$view = function (model) {
+	var game = model.a;
+	var mouse = model.b;
+	return A2($author$project$V2$drawGame, game, mouse);
 };
-var $author$project$Phutball$main = $elm$browser$Browser$element(
-	{init: $author$project$Phutball$init, subscriptions: $author$project$Phutball$subscriptions, update: $author$project$Phutball$update, view: $author$project$Phutball$view});
-_Platform_export({'Phutball':{'init':$author$project$Phutball$main(
+var $author$project$V2$main = $elm$browser$Browser$element(
+	{init: $author$project$V2$init, subscriptions: $author$project$V2$subscriptions, update: $author$project$V2$update, view: $author$project$V2$view});
+_Platform_export({'V2':{'init':$author$project$V2$main(
 	$elm$json$Json$Decode$succeed(_Utils_Tuple0))(0)}});}(this));
 
-  var app = Elm.Phutball.init({ node: document.getElementById("elm") });
+  var app = Elm.V2.init({ node: document.getElementById("elm") });
 }
 catch (e)
 {
