@@ -181,8 +181,34 @@ drawGrid : List (Svg msg)
 drawGrid = (List.map (\x -> vertical x "black" 1) (List.range 0 (num_cols-1))) ++ (List.map (\y -> horizontal y "black" 1) (List.range 1 (num_rows-1+1)))
 
 drawEndZones : List (Svg msg)
-drawEndZones = [horizontal 0 "DarkBlue" 5, horizontal 20 "DarkBlue" 5, horizontal 1 "DarkBlue" 5, horizontal 19 "DarkBlue" 5]
--- drawEndZones = [rectangle]
+-- drawEndZones = [horizontal 0 "DarkBlue" 5, horizontal 20 "DarkBlue" 5, horizontal 1 "DarkBlue" 5, horizontal 19 "DarkBlue" 5]
+drawEndZones =
+  let
+    fill_color = "none"
+    stroke_color = "blue"
+    dash_rule = "10,10"
+  in
+    [ rect
+      [ x      <| String.fromInt (round (margin / 2))
+      , y      <| String.fromInt (round (margin / 2))
+      , width  <| String.fromInt (game_width - grid_size)
+      , height <| String.fromInt (2 * grid_size)
+      , fill fill_color
+      , stroke stroke_color
+      , strokeDasharray dash_rule
+      , strokeWidth "2"] []
+    , rect
+    [ x      <| String.fromInt (round (margin / 2))
+    , y      <| String.fromInt (game_height - round (margin / 2) - 2 * grid_size)
+    , width  <| String.fromInt (game_width - grid_size)
+    , height <| String.fromInt (2 * grid_size)
+    , fill fill_color
+    , stroke stroke_color
+    , strokeDasharray dash_rule
+    , strokeWidth "2"] []
+    , horizontal 0 "black" 1
+    , horizontal 20 "black" 1
+    ]
 
 drawPath : List Point -> String -> Int -> Svg msg
 drawPath points_list color width =

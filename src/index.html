@@ -5858,13 +5858,57 @@ var $author$project$V2$horizontal = F3(
 				]),
 			_List_Nil);
 	});
-var $author$project$V2$drawEndZones = _List_fromArray(
-	[
-		A3($author$project$V2$horizontal, 0, 'DarkBlue', 5),
-		A3($author$project$V2$horizontal, 20, 'DarkBlue', 5),
-		A3($author$project$V2$horizontal, 1, 'DarkBlue', 5),
-		A3($author$project$V2$horizontal, 19, 'DarkBlue', 5)
-	]);
+var $elm$svg$Svg$Attributes$strokeDasharray = _VirtualDom_attribute('stroke-dasharray');
+var $author$project$V2$drawEndZones = function () {
+	var stroke_color = 'blue';
+	var fill_color = 'none';
+	var dash_rule = '10,10';
+	return _List_fromArray(
+		[
+			A2(
+			$elm$svg$Svg$rect,
+			_List_fromArray(
+				[
+					$elm$svg$Svg$Attributes$x(
+					$elm$core$String$fromInt(
+						$elm$core$Basics$round($author$project$V2$margin / 2))),
+					$elm$svg$Svg$Attributes$y(
+					$elm$core$String$fromInt(
+						$elm$core$Basics$round($author$project$V2$margin / 2))),
+					$elm$svg$Svg$Attributes$width(
+					$elm$core$String$fromInt($author$project$V2$game_width - $author$project$V2$grid_size)),
+					$elm$svg$Svg$Attributes$height(
+					$elm$core$String$fromInt(2 * $author$project$V2$grid_size)),
+					$elm$svg$Svg$Attributes$fill(fill_color),
+					$elm$svg$Svg$Attributes$stroke(stroke_color),
+					$elm$svg$Svg$Attributes$strokeDasharray(dash_rule),
+					$elm$svg$Svg$Attributes$strokeWidth('2')
+				]),
+			_List_Nil),
+			A2(
+			$elm$svg$Svg$rect,
+			_List_fromArray(
+				[
+					$elm$svg$Svg$Attributes$x(
+					$elm$core$String$fromInt(
+						$elm$core$Basics$round($author$project$V2$margin / 2))),
+					$elm$svg$Svg$Attributes$y(
+					$elm$core$String$fromInt(
+						($author$project$V2$game_height - $elm$core$Basics$round($author$project$V2$margin / 2)) - (2 * $author$project$V2$grid_size))),
+					$elm$svg$Svg$Attributes$width(
+					$elm$core$String$fromInt($author$project$V2$game_width - $author$project$V2$grid_size)),
+					$elm$svg$Svg$Attributes$height(
+					$elm$core$String$fromInt(2 * $author$project$V2$grid_size)),
+					$elm$svg$Svg$Attributes$fill(fill_color),
+					$elm$svg$Svg$Attributes$stroke(stroke_color),
+					$elm$svg$Svg$Attributes$strokeDasharray(dash_rule),
+					$elm$svg$Svg$Attributes$strokeWidth('2')
+				]),
+			_List_Nil),
+			A3($author$project$V2$horizontal, 0, 'black', 1),
+			A3($author$project$V2$horizontal, 20, 'black', 1)
+		]);
+}();
 var $author$project$V2$vertical = F3(
 	function (x, color, width) {
 		return A2(
