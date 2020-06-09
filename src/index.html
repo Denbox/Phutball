@@ -5695,24 +5695,42 @@ var $author$project$V2$update = F2(
 				}
 			default:
 				var point = msg.a;
-				var new_mouse = _Utils_update(
-					mouse,
-					{pressed: false});
-				var ball = game.ball;
-				var new_ball = _Utils_update(
-					ball,
-					{
-						dragging: false,
-						position: $author$project$V2$snapToGrid(ball.position)
-					});
-				return _Utils_Tuple2(
-					A2(
-						$author$project$V2$Playing,
-						_Utils_update(
-							game,
-							{ball: new_ball}),
-						new_mouse),
-					$elm$core$Platform$Cmd$none);
+				var _v2 = game.ball.dragging;
+				if (_v2) {
+					var new_mouse = _Utils_update(
+						mouse,
+						{pressed: false});
+					var ball = game.ball;
+					var new_ball = _Utils_update(
+						ball,
+						{
+							dragging: false,
+							position: $author$project$V2$snapToGrid(ball.position)
+						});
+					return _Utils_Tuple2(
+						A2(
+							$author$project$V2$Playing,
+							_Utils_update(
+								game,
+								{ball: new_ball}),
+							new_mouse),
+						$elm$core$Platform$Cmd$none);
+				} else {
+					var person = $author$project$V2$snapToGrid(point);
+					var people = game.people;
+					var new_people = A2($elm$core$List$cons, person, people);
+					var new_mouse = _Utils_update(
+						mouse,
+						{pressed: false});
+					return _Utils_Tuple2(
+						A2(
+							$author$project$V2$Playing,
+							_Utils_update(
+								game,
+								{people: new_people}),
+							new_mouse),
+						$elm$core$Platform$Cmd$none);
+				}
 		}
 	});
 var $author$project$V2$end_rows = 2;
@@ -5942,6 +5960,15 @@ var $author$project$V2$drawGrid = _Utils_ap(
 			return A3($author$project$V2$horizontal, y, 'black', 1);
 		},
 		A2($elm$core$List$range, 1, ($author$project$V2$num_rows - 1) + 1)));
+var $author$project$V2$drawPeople = function (people) {
+	var person_color = 'black';
+	return A2(
+		$elm$core$List$map,
+		function (person) {
+			return A3($author$project$V2$drawCircle, person, 0.45 * $author$project$V2$grid_size, person_color);
+		},
+		people);
+};
 var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
 var $author$project$V2$drawGame = F2(
 	function (game, mouse) {
@@ -5961,7 +5988,9 @@ var $author$project$V2$drawGame = F2(
 					$author$project$V2$drawGrid,
 					_Utils_ap(
 						$author$project$V2$drawEndZones,
-						A2($author$project$V2$drawBall, game.ball, mouse)))));
+						_Utils_ap(
+							$author$project$V2$drawPeople(game.people),
+							A2($author$project$V2$drawBall, game.ball, mouse))))));
 	});
 var $author$project$V2$view = function (model) {
 	var game = model.a;

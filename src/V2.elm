@@ -72,6 +72,11 @@ init _ =
   in
     (Playing game mouse, Cmd.none)
 
+
+
+
+-- make sure that mouse_down location = mouse_up location when trying to place people
+-- fix path of ball drawing
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case model of
@@ -99,12 +104,22 @@ update msg model =
           else
             (model, Cmd.none)
         MouseUp point ->
-          let
-            ball = game.ball
-            new_mouse = {mouse | pressed = False}
-            new_ball = {ball | dragging = False, position = snapToGrid (ball.position)}
-          in
-            (Playing {game | ball = new_ball} new_mouse, Cmd.none)
+          case game.ball.dragging of
+            True ->
+              let
+                ball = game.ball
+                new_mouse = {mouse | pressed = False}
+                new_ball = {ball | dragging = False, position = snapToGrid (ball.position)}
+              in
+                (Playing {game | ball = new_ball} new_mouse, Cmd.none)
+            False ->
+              let
+                people = game.people
+                person = snapToGrid point
+                new_people = person::people
+                new_mouse = {mouse | pressed = False}
+              in
+                (Playing {game | people = new_people} new_mouse, Cmd.none)
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -135,7 +150,7 @@ view model =
 drawGame : Game -> Mouse -> Html Msg
 drawGame game mouse =
   svg [width <| String.fromInt game_width, height <| String.fromInt game_height]
-  ([drawBackground] ++ drawGrid ++ drawEndZones ++ (drawBall game.ball mouse))
+  ([drawBackground] ++ drawGrid ++ drawEndZones ++ drawPeople game.people ++ (drawBall game.ball mouse))
 
 rectangle : Int -> Int -> Int -> Int -> String -> Svg msg
 rectangle left_x top_y w h color = rect
@@ -234,3 +249,10 @@ drawBall ball mouse =
             [drawPath (ball.history ++ [point]) line_color line_width, drawCircle ball.position (0.65 * grid_size) ball_color]
       False ->
         [drawPath ball.history line_color line_width, drawCircle ball.position (0.45 * grid_size) ball_color]
+
+drawPeople : List Point -> List (Svg msg)
+drawPeople people =
+  let
+    person_color = "black"
+  in
+  List.map (\person -> drawCircle person (0.45 * grid_size) person_color) people
