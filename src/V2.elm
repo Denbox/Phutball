@@ -39,7 +39,6 @@ type alias Game =
 type alias Ball =
   { position : Point
   , history  : List Point
-  , dragging : Bool
   }
 
 type Turn
@@ -47,8 +46,9 @@ type Turn
   | O
 
 type Mouse
-  = NotPressed
-  | Pressed Point Point -- start and current positions
+  = Up
+  | Pressing Point Point
+  | Dragging Point Point
 
 type Model
   = Playing Game Mouse
@@ -70,8 +70,8 @@ init : () -> (Model, Cmd Msg)
 init _ =
   let
     ball_pos = Point (margin + 7 * grid_size) (margin + 9 * grid_size)
-    game = Game (Ball ball_pos [] False) [] X
-    mouse = NotPressed
+    game = Game (Ball ball_pos [ball_pos]) [] X
+    mouse = Up
   in
     (Playing game mouse, Cmd.none)
 
@@ -85,63 +85,81 @@ update msg model =
   case model of
     Playing game mouse ->
       case msg of
+        -- only alter mouse state - game remains unchanged otherwise
+        -- add a check here to see if the player is currently allowed to drag or place
         MouseDown point ->
           let
-            start_pos = point
-            current_pos = point
-            new_mouse = Pressed start_pos current_pos
+            start = snapToGrid point
+            current = point
           in
             if snapToGrid point == game.ball.position then
-              let
-                ball = game.ball
-                new_ball = {ball | dragging = True}
-              in
-                (Playing {game | ball = new_ball} new_mouse, Cmd.none)
+              (Playing game (Dragging start current), Cmd.none)
             else
-              (model, Cmd.none)
-        MouseMove point ->
-          if game.ball.dragging then
-            let
-              ball = game.ball
-              new_ball = {ball | position = point}
-            in
-              (Playing {game | ball = new_ball} mouse, Cmd.none)
-          else
-            (model, Cmd.none)
-        MouseUp point ->
-          case game.ball.dragging of
-            True ->
-              let
-                ball = game.ball
-                new_mouse = NotPressed
-                new_ball = {ball | dragging = False, position = snapToGrid (ball.position)}
-              in
-                (Playing {game | ball = new_ball} new_mouse, Cmd.none)
-            False ->
-              let
-                people = game.people
-                person = snapToGrid point
-                new_people = person::people
-                new_mouse = NotPressed
-              in
-                if inBounds person then
-                  (Playing {game | people = new_people} new_mouse, Cmd.none)
-                else
-                  (Playing game new_mouse, Cmd.none)
+              (Playing game (Pressing start current), Cmd.none)
+        -- again, only alter mouse state - rest of game remains unchanged
+        MouseMove current ->
+          case mouse of
+            Up -> -- this is impossible. Should I have an error here?
+              (Playing game mouse, Cmd.none)
+            Dragging start _ ->
+              (Playing game (Dragging start current), Cmd.none)
+            Pressing start _ ->
+              (Playing game (Pressing start current), Cmd.none)
+        -- perform game update upon release
+        -- try to place/jump, check for win condition, switch turns, etc
+        MouseUp end ->
+          let
+            end_pos = snapToGrid end
+          in
+            case mouse of
+              Up -> -- this is impossible. Should I have an error here?
+                (Playing game mouse, Cmd.none)
+              Dragging start_pos _ ->
+                moveBall game start_pos end_pos
+              Pressing start_pos _ ->
+                placePerson game start_pos end_pos
+
+-- make this swap turns if successful and player finishes
+moveBall : Game -> Point -> Point -> (Model, Cmd Msg)
+moveBall game start end =
+  -- for now, let's ignore more complex movements and victory conditions
+  -- we simply want to be allowed to place the ball on an empty spot
+  -- note that placing the ball in the same spot doesn't count as a move
+  -- later placing it on itself will be used to symbolize finishing a turn
+  let
+    valid_spot = not (List.member end game.people) && end /= game.ball.position
+    updated_ball = Ball end (end::game.ball.history)
+  in
+    if inBounds end && valid_spot then
+      (Playing {game | ball = updated_ball} Up, Cmd.none)
+    else
+      (Playing game Up, Cmd.none)
+
+-- make this swap turns if successful
+placePerson : Game -> Point -> Point -> (Model, Cmd Msg)
+placePerson game start end =
+  let
+    updated_people = (end::game.people)
+    new_person = not (List.member end game.people) && end /= game.ball.position
+  in
+    if start == end && inBounds end && new_person then
+      (Playing {game | people = updated_people} Up, Cmd.none)
+    else
+      (Playing game Up, Cmd.none)
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
   case model of
     Playing _ mouse ->
       case mouse of
-        Pressed start current ->
-          Sub.batch
-          [ Browser.Events.onMouseMove (Json.Decode.map MouseMove decodeXY)
-          , Browser.Events.onMouseUp   (Json.Decode.map MouseUp   decodeGridXY)
-          ]
-        NotPressed ->
+        Up ->
           Sub.batch
           [ Browser.Events.onMouseDown (Json.Decode.map MouseDown decodeGridXY)
+          , Browser.Events.onMouseUp   (Json.Decode.map MouseUp   decodeGridXY)
+          ]
+        _ ->
+          Sub.batch
+          [ Browser.Events.onMouseMove (Json.Decode.map MouseMove decodeXY)
           , Browser.Events.onMouseUp   (Json.Decode.map MouseUp   decodeGridXY)
           ]
 
@@ -250,9 +268,9 @@ drawBall ball mouse =
     ball_color = "white"
   in
     case mouse of
-      Pressed start current ->
-        [drawPath (ball.history ++ [current]) line_color line_width, drawCircle ball.position (0.65 * grid_size) ball_color]
-      NotPressed ->
+      Dragging start current ->
+        [drawPath (current::ball.history) line_color line_width, drawCircle current (0.65 * grid_size) ball_color]
+      _ ->
         [drawPath ball.history line_color line_width, drawCircle ball.position (0.45 * grid_size) ball_color]
 
 drawPeople : List Point -> List (Svg msg)
