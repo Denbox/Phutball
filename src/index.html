@@ -5660,15 +5660,6 @@ var $author$project$V2$Pressing = F2(
 	function (a, b) {
 		return {$: 'Pressing', a: a, b: b};
 	});
-var $author$project$V2$end_rows = 2;
-var $author$project$V2$num_rows = 19;
-var $author$project$V2$game_height = ($author$project$V2$grid_size * (($author$project$V2$num_rows + $author$project$V2$end_rows) - 1)) + (2 * $author$project$V2$margin);
-var $author$project$V2$num_cols = 15;
-var $author$project$V2$game_width = ($author$project$V2$grid_size * ($author$project$V2$num_cols - 1)) + (2 * $author$project$V2$margin);
-var $elm$core$Basics$ge = _Utils_ge;
-var $author$project$V2$inBounds = function (p) {
-	return (_Utils_cmp(p.x, $author$project$V2$margin) > -1) && ((_Utils_cmp(p.x, $author$project$V2$game_width - $author$project$V2$margin) < 1) && ((_Utils_cmp(p.y, $author$project$V2$margin + $author$project$V2$grid_size) > -1) && (_Utils_cmp(p.y, ($author$project$V2$game_height - $author$project$V2$margin) - $author$project$V2$grid_size) < 1)));
-};
 var $elm$core$List$any = F2(
 	function (isOkay, list) {
 		any:
@@ -5690,6 +5681,19 @@ var $elm$core$List$any = F2(
 			}
 		}
 	});
+var $elm$core$Basics$composeL = F3(
+	function (g, f, x) {
+		return g(
+			f(x));
+	});
+var $elm$core$Basics$not = _Basics_not;
+var $elm$core$List$all = F2(
+	function (isOkay, list) {
+		return !A2(
+			$elm$core$List$any,
+			A2($elm$core$Basics$composeL, $elm$core$Basics$not, isOkay),
+			list);
+	});
 var $elm$core$List$member = F2(
 	function (x, xs) {
 		return A2(
@@ -5699,21 +5703,100 @@ var $elm$core$List$member = F2(
 			},
 			xs);
 	});
+var $author$project$V2$allPeople = F2(
+	function (points, people) {
+		var at_least_one_point = $elm$core$List$length(points) > 0;
+		var all_points_are_people = A2(
+			$elm$core$List$all,
+			function (x) {
+				return A2($elm$core$List$member, x, people);
+			},
+			points);
+		return all_points_are_people && at_least_one_point;
+	});
+var $author$project$V2$end_rows = 2;
+var $author$project$V2$num_rows = 19;
+var $author$project$V2$game_height = ($author$project$V2$grid_size * (($author$project$V2$num_rows + $author$project$V2$end_rows) - 1)) + (2 * $author$project$V2$margin);
+var $author$project$V2$num_cols = 15;
+var $author$project$V2$game_width = ($author$project$V2$grid_size * ($author$project$V2$num_cols - 1)) + (2 * $author$project$V2$margin);
+var $elm$core$Basics$ge = _Utils_ge;
+var $author$project$V2$inBounds = function (p) {
+	return (_Utils_cmp(p.x, $author$project$V2$margin) > -1) && ((_Utils_cmp(p.x, $author$project$V2$game_width - $author$project$V2$margin) < 1) && ((_Utils_cmp(p.y, $author$project$V2$margin + $author$project$V2$grid_size) > -1) && (_Utils_cmp(p.y, ($author$project$V2$game_height - $author$project$V2$margin) - $author$project$V2$grid_size) < 1)));
+};
+var $elm$core$Basics$negate = function (n) {
+	return -n;
+};
+var $elm$core$Basics$abs = function (n) {
+	return (n < 0) ? (-n) : n;
+};
+var $author$project$V2$pAdd = F2(
+	function (a, b) {
+		return A2($author$project$V2$Point, a.x + b.x, a.y + b.y);
+	});
+var $author$project$V2$psMul = F2(
+	function (p, a) {
+		return A2($author$project$V2$Point, p.x * a, p.y * a);
+	});
 var $elm$core$Basics$neq = _Utils_notEqual;
-var $elm$core$Basics$not = _Basics_not;
+var $author$project$V2$pSub = F2(
+	function (a, b) {
+		return A2($author$project$V2$Point, a.x - b.x, a.y - b.y);
+	});
+var $author$project$V2$validDragDirection = F2(
+	function (start, end) {
+		var unique = !_Utils_eq(start, end);
+		var diff = A2($author$project$V2$pSub, end, start);
+		var horizontal_or_vertical = (!diff.x) || (!diff.y);
+		var diagonal = _Utils_eq(
+			$elm$core$Basics$abs(diff.x),
+			$elm$core$Basics$abs(diff.y));
+		return unique && (horizontal_or_vertical || diagonal);
+	});
+var $author$project$V2$pointsBetween = F2(
+	function (start, end) {
+		if (A2($author$project$V2$validDragDirection, start, end)) {
+			var max_diff = A2(
+				$elm$core$Basics$max,
+				$elm$core$Basics$abs(end.x - start.x),
+				$elm$core$Basics$abs(end.y - start.y));
+			var shift = A2($author$project$V2$Point, ((end.x - start.x) / max_diff) | 0, ((end.y - start.y) / max_diff) | 0);
+			return A2(
+				$elm$core$List$map,
+				function (i) {
+					return A2(
+						$author$project$V2$pAdd,
+						start,
+						A2($author$project$V2$psMul, shift, i));
+				},
+				A2($elm$core$List$range, 1, max_diff - 1));
+		} else {
+			return _List_Nil;
+		}
+	});
+var $author$project$V2$validDrag = F3(
+	function (game, start, end) {
+		var valid_start = _Utils_eq(game.ball.position, start);
+		var valid_end = $author$project$V2$inBounds(end) && (!A2($elm$core$List$member, end, game.people));
+		var valid_direction = A2($author$project$V2$validDragDirection, start, end);
+		var all_people_between = A2(
+			$author$project$V2$allPeople,
+			A2($author$project$V2$pointsBetween, start, end),
+			game.people);
+		return valid_start && (valid_end && valid_direction);
+	});
 var $author$project$V2$moveBall = F3(
 	function (game, start, end) {
-		var valid_spot = (!A2($elm$core$List$member, end, game.people)) && (!_Utils_eq(end, game.ball.position));
-		var updated_ball = A2(
-			$author$project$V2$Ball,
-			end,
-			A2($elm$core$List$cons, end, game.ball.history));
-		return ($author$project$V2$inBounds(end) && valid_spot) ? _Utils_Tuple2(
+		return A3($author$project$V2$validDrag, game, start, end) ? _Utils_Tuple2(
 			A2(
 				$author$project$V2$Playing,
 				_Utils_update(
 					game,
-					{ball: updated_ball}),
+					{
+						ball: A2(
+							$author$project$V2$Ball,
+							end,
+							A2($elm$core$List$cons, end, game.ball.history))
+					}),
 				$author$project$V2$Up),
 			$elm$core$Platform$Cmd$none) : _Utils_Tuple2(
 			A2($author$project$V2$Playing, game, $author$project$V2$Up),

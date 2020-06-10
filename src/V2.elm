@@ -19,6 +19,16 @@ type alias Point =
   , y : Int
   }
 
+pAdd : Point -> Point -> Point
+pAdd a b = Point (a.x + b.x) (a.y + b.y)
+
+pSub : Point -> Point -> Point
+pSub a b = Point (a.x - b.x) (a.y - b.y)
+
+-- scalar multiplication
+psMul : Point -> Int -> Point
+psMul p a = Point (p.x * a) (p.y * a)
+
 snapToGrid : Point -> Point
 snapToGrid p =
   let
@@ -122,18 +132,65 @@ update msg model =
 -- make this swap turns if successful and player finishes
 moveBall : Game -> Point -> Point -> (Model, Cmd Msg)
 moveBall game start end =
+  if validDrag game start end then
+    (Playing {game | ball = Ball end (end::game.ball.history)} Up, Cmd.none)
+  else
+    (Playing game Up, Cmd.none)
   -- for now, let's ignore more complex movements and victory conditions
   -- we simply want to be allowed to place the ball on an empty spot
   -- note that placing the ball in the same spot doesn't count as a move
   -- later placing it on itself will be used to symbolize finishing a turn
+  -- let
+  --   valid_spot = not (List.member end game.people) && end /= game.ball.position
+  --   updated_ball = Ball end (end::game.ball.history)
+  -- in
+  --   if inBounds end && valid_spot then
+  --     (Playing {game | ball = updated_ball} Up, Cmd.none)
+  --   else
+  --     (Playing game Up, Cmd.none)
+
+-- accepts points that move in cardinal directions, or along -1, 1 slope diagonals
+validDragDirection : Point -> Point -> Bool
+validDragDirection start end =
   let
-    valid_spot = not (List.member end game.people) && end /= game.ball.position
-    updated_ball = Ball end (end::game.ball.history)
+    unique = start /= end
+    diff = pSub end start
+    horizontal_or_vertical = diff.x == 0 || diff.y == 0
+    diagonal = abs diff.x == abs diff.y
   in
-    if inBounds end && valid_spot then
-      (Playing {game | ball = updated_ball} Up, Cmd.none)
-    else
-      (Playing game Up, Cmd.none)
+    unique && (horizontal_or_vertical || diagonal)
+
+-- if validDragDirection start end, return all points on grid between start and end
+pointsBetween : Point -> Point -> List Point
+pointsBetween start end =
+  if validDragDirection start end then
+    let
+      max_diff = Basics.max (abs (end.x - start.x)) (abs (end.y - start.y))
+      -- this will never cause divide by zero because validDragDirection checks that start /= end
+      shift = Point ((end.x - start.x) // max_diff) ((end.y - start.y) // max_diff)
+    in
+      List.map (\i -> pAdd start (psMul shift i)) (List.range 1 (max_diff - 1))
+  else
+    []
+
+-- we also require at least 1 person in between
+allPeople : List Point -> List Point -> Bool
+allPeople points people =
+  let
+    all_points_are_people = (List.all (\x -> List.member x people) points)
+    at_least_one_point = (List.length points) > 0
+  in
+   all_points_are_people && at_least_one_point
+
+validDrag : Game -> Point -> Point -> Bool
+validDrag game start end =
+  let
+    valid_start = game.ball.position == start
+    valid_end = inBounds end && not (List.member end game.people)
+    valid_direction = validDragDirection start end
+    all_people_between = allPeople (pointsBetween start end) game.people
+  in
+    valid_start && valid_end && valid_direction --&& all_people_between
 
 -- make this swap turns if successful
 placePerson : Game -> Point -> Point -> (Model, Cmd Msg)
