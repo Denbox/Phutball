@@ -26,6 +26,10 @@ snapToGrid p =
   in
     Point (snap p.x) (snap p.y)
 
+inBounds : Point -> Bool
+inBounds p =
+  p.x >= margin && p.x <= game_width - margin && p.y >= margin + grid_size && p.y <= game_height - margin - grid_size
+
 type alias Game =
   { ball    : Ball
   , people  : List Point
@@ -42,10 +46,9 @@ type Turn
   = X
   | O
 
-type alias Mouse =
-  { pressed  : Bool
-  , position : Maybe Point
-  }
+type Mouse
+  = NotPressed
+  | Pressed Point Point -- start and current positions
 
 type Model
   = Playing Game Mouse
@@ -68,7 +71,7 @@ init _ =
   let
     ball_pos = Point (margin + 7 * grid_size) (margin + 9 * grid_size)
     game = Game (Ball ball_pos [] False) [] X
-    mouse = Mouse False Nothing
+    mouse = NotPressed
   in
     (Playing game mouse, Cmd.none)
 
@@ -84,7 +87,9 @@ update msg model =
       case msg of
         MouseDown point ->
           let
-            new_mouse = {mouse | pressed = True}
+            start_pos = point
+            current_pos = point
+            new_mouse = Pressed start_pos current_pos
           in
             if snapToGrid point == game.ball.position then
               let
@@ -108,7 +113,7 @@ update msg model =
             True ->
               let
                 ball = game.ball
-                new_mouse = {mouse | pressed = False}
+                new_mouse = NotPressed
                 new_ball = {ball | dragging = False, position = snapToGrid (ball.position)}
               in
                 (Playing {game | ball = new_ball} new_mouse, Cmd.none)
@@ -117,24 +122,28 @@ update msg model =
                 people = game.people
                 person = snapToGrid point
                 new_people = person::people
-                new_mouse = {mouse | pressed = False}
+                new_mouse = NotPressed
               in
-                (Playing {game | people = new_people} new_mouse, Cmd.none)
+                if inBounds person then
+                  (Playing {game | people = new_people} new_mouse, Cmd.none)
+                else
+                  (Playing game new_mouse, Cmd.none)
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
   case model of
     Playing _ mouse ->
-      if mouse.pressed then
-        Sub.batch
-        [ Browser.Events.onMouseMove (Json.Decode.map MouseMove decodeXY)
-        , Browser.Events.onMouseUp   (Json.Decode.map MouseUp   decodeGridXY)
-        ]
-      else
-        Sub.batch
-        [ Browser.Events.onMouseDown (Json.Decode.map MouseDown decodeGridXY)
-        , Browser.Events.onMouseUp   (Json.Decode.map MouseUp   decodeGridXY)
-        ]
+      case mouse of
+        Pressed start current ->
+          Sub.batch
+          [ Browser.Events.onMouseMove (Json.Decode.map MouseMove decodeXY)
+          , Browser.Events.onMouseUp   (Json.Decode.map MouseUp   decodeGridXY)
+          ]
+        NotPressed ->
+          Sub.batch
+          [ Browser.Events.onMouseDown (Json.Decode.map MouseDown decodeGridXY)
+          , Browser.Events.onMouseUp   (Json.Decode.map MouseUp   decodeGridXY)
+          ]
 
 decodeX  = (Json.Decode.field "pageX" Json.Decode.int)
 decodeY  = (Json.Decode.field "pageY" Json.Decode.int)
@@ -240,14 +249,10 @@ drawBall ball mouse =
     line_width = 10
     ball_color = "white"
   in
-    case mouse.pressed of
-      True ->
-        case mouse.position of
-          Nothing ->
-            [drawPath ball.history line_color line_width, drawCircle ball.position (0.65 * grid_size) ball_color]
-          Just point ->
-            [drawPath (ball.history ++ [point]) line_color line_width, drawCircle ball.position (0.65 * grid_size) ball_color]
-      False ->
+    case mouse of
+      Pressed start current ->
+        [drawPath (ball.history ++ [current]) line_color line_width, drawCircle ball.position (0.65 * grid_size) ball_color]
+      NotPressed ->
         [drawPath ball.history line_color line_width, drawCircle ball.position (0.45 * grid_size) ball_color]
 
 drawPeople : List Point -> List (Svg msg)

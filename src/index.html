@@ -5166,10 +5166,7 @@ var $author$project$V2$Game = F3(
 	function (ball, people, turn) {
 		return {ball: ball, people: people, turn: turn};
 	});
-var $author$project$V2$Mouse = F2(
-	function (pressed, position) {
-		return {position: position, pressed: pressed};
-	});
+var $author$project$V2$NotPressed = {$: 'NotPressed'};
 var $author$project$V2$Playing = F2(
 	function (a, b) {
 		return {$: 'Playing', a: a, b: b};
@@ -5184,7 +5181,7 @@ var $author$project$V2$margin = $author$project$V2$grid_size;
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $author$project$V2$init = function (_v0) {
-	var mouse = A2($author$project$V2$Mouse, false, $elm$core$Maybe$Nothing);
+	var mouse = $author$project$V2$NotPressed;
 	var ball_pos = A2($author$project$V2$Point, $author$project$V2$margin + (7 * $author$project$V2$grid_size), $author$project$V2$margin + (9 * $author$project$V2$grid_size));
 	var game = A3(
 		$author$project$V2$Game,
@@ -5631,21 +5628,40 @@ var $elm$browser$Browser$Events$onMouseMove = A2($elm$browser$Browser$Events$on,
 var $elm$browser$Browser$Events$onMouseUp = A2($elm$browser$Browser$Events$on, $elm$browser$Browser$Events$Document, 'mouseup');
 var $author$project$V2$subscriptions = function (model) {
 	var mouse = model.b;
-	return mouse.pressed ? $elm$core$Platform$Sub$batch(
-		_List_fromArray(
-			[
-				$elm$browser$Browser$Events$onMouseMove(
-				A2($elm$json$Json$Decode$map, $author$project$V2$MouseMove, $author$project$V2$decodeXY)),
-				$elm$browser$Browser$Events$onMouseUp(
-				A2($elm$json$Json$Decode$map, $author$project$V2$MouseUp, $author$project$V2$decodeGridXY))
-			])) : $elm$core$Platform$Sub$batch(
-		_List_fromArray(
-			[
-				$elm$browser$Browser$Events$onMouseDown(
-				A2($elm$json$Json$Decode$map, $author$project$V2$MouseDown, $author$project$V2$decodeGridXY)),
-				$elm$browser$Browser$Events$onMouseUp(
-				A2($elm$json$Json$Decode$map, $author$project$V2$MouseUp, $author$project$V2$decodeGridXY))
-			]));
+	if (mouse.$ === 'Pressed') {
+		var start = mouse.a;
+		var current = mouse.b;
+		return $elm$core$Platform$Sub$batch(
+			_List_fromArray(
+				[
+					$elm$browser$Browser$Events$onMouseMove(
+					A2($elm$json$Json$Decode$map, $author$project$V2$MouseMove, $author$project$V2$decodeXY)),
+					$elm$browser$Browser$Events$onMouseUp(
+					A2($elm$json$Json$Decode$map, $author$project$V2$MouseUp, $author$project$V2$decodeGridXY))
+				]));
+	} else {
+		return $elm$core$Platform$Sub$batch(
+			_List_fromArray(
+				[
+					$elm$browser$Browser$Events$onMouseDown(
+					A2($elm$json$Json$Decode$map, $author$project$V2$MouseDown, $author$project$V2$decodeGridXY)),
+					$elm$browser$Browser$Events$onMouseUp(
+					A2($elm$json$Json$Decode$map, $author$project$V2$MouseUp, $author$project$V2$decodeGridXY))
+				]));
+	}
+};
+var $author$project$V2$Pressed = F2(
+	function (a, b) {
+		return {$: 'Pressed', a: a, b: b};
+	});
+var $author$project$V2$end_rows = 2;
+var $author$project$V2$num_rows = 19;
+var $author$project$V2$game_height = ($author$project$V2$grid_size * (($author$project$V2$num_rows + $author$project$V2$end_rows) - 1)) + (2 * $author$project$V2$margin);
+var $author$project$V2$num_cols = 15;
+var $author$project$V2$game_width = ($author$project$V2$grid_size * ($author$project$V2$num_cols - 1)) + (2 * $author$project$V2$margin);
+var $elm$core$Basics$ge = _Utils_ge;
+var $author$project$V2$inBounds = function (p) {
+	return (_Utils_cmp(p.x, $author$project$V2$margin) > -1) && ((_Utils_cmp(p.x, $author$project$V2$game_width - $author$project$V2$margin) < 1) && ((_Utils_cmp(p.y, $author$project$V2$margin + $author$project$V2$grid_size) > -1) && (_Utils_cmp(p.y, ($author$project$V2$game_height - $author$project$V2$margin) - $author$project$V2$grid_size) < 1)));
 };
 var $author$project$V2$update = F2(
 	function (msg, model) {
@@ -5654,9 +5670,9 @@ var $author$project$V2$update = F2(
 		switch (msg.$) {
 			case 'MouseDown':
 				var point = msg.a;
-				var new_mouse = _Utils_update(
-					mouse,
-					{pressed: true});
+				var start_pos = point;
+				var current_pos = point;
+				var new_mouse = A2($author$project$V2$Pressed, start_pos, current_pos);
 				if (_Utils_eq(
 					$author$project$V2$snapToGrid(point),
 					game.ball.position)) {
@@ -5697,9 +5713,7 @@ var $author$project$V2$update = F2(
 				var point = msg.a;
 				var _v2 = game.ball.dragging;
 				if (_v2) {
-					var new_mouse = _Utils_update(
-						mouse,
-						{pressed: false});
+					var new_mouse = $author$project$V2$NotPressed;
 					var ball = game.ball;
 					var new_ball = _Utils_update(
 						ball,
@@ -5719,25 +5733,20 @@ var $author$project$V2$update = F2(
 					var person = $author$project$V2$snapToGrid(point);
 					var people = game.people;
 					var new_people = A2($elm$core$List$cons, person, people);
-					var new_mouse = _Utils_update(
-						mouse,
-						{pressed: false});
-					return _Utils_Tuple2(
+					var new_mouse = $author$project$V2$NotPressed;
+					return $author$project$V2$inBounds(person) ? _Utils_Tuple2(
 						A2(
 							$author$project$V2$Playing,
 							_Utils_update(
 								game,
 								{people: new_people}),
 							new_mouse),
+						$elm$core$Platform$Cmd$none) : _Utils_Tuple2(
+						A2($author$project$V2$Playing, game, new_mouse),
 						$elm$core$Platform$Cmd$none);
 				}
 		}
 	});
-var $author$project$V2$end_rows = 2;
-var $author$project$V2$num_rows = 19;
-var $author$project$V2$game_height = ($author$project$V2$grid_size * (($author$project$V2$num_rows + $author$project$V2$end_rows) - 1)) + (2 * $author$project$V2$margin);
-var $author$project$V2$num_cols = 15;
-var $author$project$V2$game_width = ($author$project$V2$grid_size * ($author$project$V2$num_cols - 1)) + (2 * $author$project$V2$margin);
 var $elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
 var $elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
 var $elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
@@ -5819,30 +5828,21 @@ var $author$project$V2$drawBall = F2(
 		var line_width = 10;
 		var line_color = 'red';
 		var ball_color = 'white';
-		var _v0 = mouse.pressed;
-		if (_v0) {
-			var _v1 = mouse.position;
-			if (_v1.$ === 'Nothing') {
-				return _List_fromArray(
-					[
-						A3($author$project$V2$drawPath, ball.history, line_color, line_width),
-						A3($author$project$V2$drawCircle, ball.position, 0.65 * $author$project$V2$grid_size, ball_color)
-					]);
-			} else {
-				var point = _v1.a;
-				return _List_fromArray(
-					[
-						A3(
-						$author$project$V2$drawPath,
-						_Utils_ap(
-							ball.history,
-							_List_fromArray(
-								[point])),
-						line_color,
-						line_width),
-						A3($author$project$V2$drawCircle, ball.position, 0.65 * $author$project$V2$grid_size, ball_color)
-					]);
-			}
+		if (mouse.$ === 'Pressed') {
+			var start = mouse.a;
+			var current = mouse.b;
+			return _List_fromArray(
+				[
+					A3(
+					$author$project$V2$drawPath,
+					_Utils_ap(
+						ball.history,
+						_List_fromArray(
+							[current])),
+					line_color,
+					line_width),
+					A3($author$project$V2$drawCircle, ball.position, 0.65 * $author$project$V2$grid_size, ball_color)
+				]);
 		} else {
 			return _List_fromArray(
 				[
