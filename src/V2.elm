@@ -262,7 +262,7 @@ view model =
 drawGame : Game -> Mouse -> Html Msg
 drawGame game mouse =
   svg [width <| String.fromInt game_width, height <| String.fromInt game_height]
-  ([drawBackground] ++ drawGrid ++ drawEndZones ++ drawPeople game.people ++ (drawBall game.ball mouse))
+  ([drawBackground] ++ drawGrid ++ drawEndZones ++ drawPeople game ++ (drawBall game.ball mouse))
 
 rectangle : Int -> Int -> Int -> Int -> String -> Svg msg
 rectangle left_x top_y w h color = rect
@@ -296,12 +296,13 @@ vertical x color width = line
   , strokeWidth <| String.fromInt width
   ] []
 
-drawCircle : Point -> Float -> String -> Svg msg
-drawCircle point radius c = circle
+drawCircle : Point -> Float -> String -> Float -> Svg msg
+drawCircle point radius c o = circle
   [ cx <| String.fromInt point.x
   , cy <| String.fromInt point.y
   , r  <| String.fromFloat radius
   , fill c
+  , opacity <| String.fromFloat o
   ] []
 
 drawGrid : List (Svg msg)
@@ -351,16 +352,18 @@ drawBall ball mouse =
     line_color = "red"
     line_width = 10
     ball_color = "white"
+    opacity    = 1
   in
     case mouse of
       Dragging start current ->
-        [drawPath ball line_color line_width, drawCircle current (0.65 * grid_size) ball_color]
+        [drawPath ball line_color line_width, drawCircle current (0.65 * grid_size) ball_color opacity]
       _ ->
-        [drawPath ball line_color line_width, drawCircle ball.position (0.45 * grid_size) ball_color]
+        [drawPath ball line_color line_width, drawCircle ball.position (0.45 * grid_size) ball_color opacity]
 
-drawPeople : List Point -> List (Svg msg)
-drawPeople people =
+drawPeople : Game -> List (Svg msg)
+drawPeople game =
   let
-    person_color = "black"
+    people = game.people
+    opacity person = if List.member person (jumpedList game.ball) then 0.5 else 1
   in
-  List.map (\person -> drawCircle person (0.45 * grid_size) person_color) people
+  List.map (\person -> drawCircle person (0.45 * grid_size) "black" (opacity person)) people

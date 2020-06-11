@@ -5982,9 +5982,10 @@ var $elm$svg$Svg$circle = $elm$svg$Svg$trustedNode('circle');
 var $elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
 var $elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
 var $elm$core$String$fromFloat = _String_fromNumber;
+var $elm$svg$Svg$Attributes$opacity = _VirtualDom_attribute('opacity');
 var $elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
-var $author$project$V2$drawCircle = F3(
-	function (point, radius, c) {
+var $author$project$V2$drawCircle = F4(
+	function (point, radius, c, o) {
 		return A2(
 			$elm$svg$Svg$circle,
 			_List_fromArray(
@@ -5995,7 +5996,9 @@ var $author$project$V2$drawCircle = F3(
 					$elm$core$String$fromInt(point.y)),
 					$elm$svg$Svg$Attributes$r(
 					$elm$core$String$fromFloat(radius)),
-					$elm$svg$Svg$Attributes$fill(c)
+					$elm$svg$Svg$Attributes$fill(c),
+					$elm$svg$Svg$Attributes$opacity(
+					$elm$core$String$fromFloat(o))
 				]),
 			_List_Nil);
 	});
@@ -6033,6 +6036,7 @@ var $author$project$V2$drawPath = F3(
 	});
 var $author$project$V2$drawBall = F2(
 	function (ball, mouse) {
+		var opacity = 1;
 		var line_width = 10;
 		var line_color = 'red';
 		var ball_color = 'white';
@@ -6042,13 +6046,13 @@ var $author$project$V2$drawBall = F2(
 			return _List_fromArray(
 				[
 					A3($author$project$V2$drawPath, ball, line_color, line_width),
-					A3($author$project$V2$drawCircle, current, 0.65 * $author$project$V2$grid_size, ball_color)
+					A4($author$project$V2$drawCircle, current, 0.65 * $author$project$V2$grid_size, ball_color, opacity)
 				]);
 		} else {
 			return _List_fromArray(
 				[
 					A3($author$project$V2$drawPath, ball, line_color, line_width),
-					A3($author$project$V2$drawCircle, ball.position, 0.45 * $author$project$V2$grid_size, ball_color)
+					A4($author$project$V2$drawCircle, ball.position, 0.45 * $author$project$V2$grid_size, ball_color, opacity)
 				]);
 		}
 	});
@@ -6161,12 +6165,23 @@ var $author$project$V2$drawGrid = _Utils_ap(
 			return A3($author$project$V2$horizontal, y, 'black', 1);
 		},
 		A2($elm$core$List$range, 1, ($author$project$V2$num_rows - 1) + 1)));
-var $author$project$V2$drawPeople = function (people) {
-	var person_color = 'black';
+var $author$project$V2$drawPeople = function (game) {
+	var people = game.people;
+	var opacity = function (person) {
+		return A2(
+			$elm$core$List$member,
+			person,
+			$author$project$V2$jumpedList(game.ball)) ? 0.5 : 1;
+	};
 	return A2(
 		$elm$core$List$map,
 		function (person) {
-			return A3($author$project$V2$drawCircle, person, 0.45 * $author$project$V2$grid_size, person_color);
+			return A4(
+				$author$project$V2$drawCircle,
+				person,
+				0.45 * $author$project$V2$grid_size,
+				'black',
+				opacity(person));
 		},
 		people);
 };
@@ -6190,7 +6205,7 @@ var $author$project$V2$drawGame = F2(
 					_Utils_ap(
 						$author$project$V2$drawEndZones,
 						_Utils_ap(
-							$author$project$V2$drawPeople(game.people),
+							$author$project$V2$drawPeople(game),
 							A2($author$project$V2$drawBall, game.ball, mouse))))));
 	});
 var $author$project$V2$view = function (model) {
