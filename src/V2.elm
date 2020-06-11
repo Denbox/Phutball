@@ -45,9 +45,9 @@ inBoundsBall p =
   p.x >= margin && p.x <= game_width - margin && p.y >= margin && p.y <= game_height - margin
 
 type alias Game =
-  { ball    : Ball
-  , people  : List Point
-  , turn    : Turn
+  { ball        : Ball
+  , people      : List Point
+  , turn        : Turn
   }
 
 type alias Ball =
@@ -84,7 +84,7 @@ init : () -> (Model, Cmd Msg)
 init _ =
   let
     ball_pos = Point (margin + 7 * grid_size) (margin + 9 * grid_size)
-    game = Game (Ball ball_pos [ball_pos]) [] X
+    game = Game (Ball ball_pos []) [] X
     mouse = Up
   in
     (Playing game mouse, Cmd.none)
@@ -129,29 +129,24 @@ update msg model =
               Up -> -- this is impossible. Should I have an error here?
                 (Playing game mouse, Cmd.none)
               Dragging start_pos _ ->
-                moveBall game start_pos end_pos
+                if start_pos == end_pos && List.length game.ball.history > 0 then
+                  finishBallMove game
+                  -- (Playing {game | ball = Ball end_pos []} Up, Cmd.none)
+                else
+                  moveBall game start_pos end_pos
               Pressing start_pos _ ->
-                placePerson game start_pos end_pos
+                if List.length game.ball.history > 0 then
+                  (Playing game Up, Cmd.none) -- not allowed to place while moving
+                else
+                  placePerson game start_pos end_pos
 
 -- make this swap turns if successful and player finishes
 moveBall : Game -> Point -> Point -> (Model, Cmd Msg)
 moveBall game start end =
   if validDrag game start end then
-    (Playing {game | ball = Ball end (end::game.ball.history)} Up, Cmd.none)
+    (Playing {game | ball = Ball end (start::game.ball.history)} Up, Cmd.none)
   else
     (Playing game Up, Cmd.none)
-  -- for now, let's ignore more complex movements and victory conditions
-  -- we simply want to be allowed to place the ball on an empty spot
-  -- note that placing the ball in the same spot doesn't count as a move
-  -- later placing it on itself will be used to symbolize finishing a turn
-  -- let
-  --   valid_spot = not (List.member end game.people) && end /= game.ball.position
-  --   updated_ball = Ball end (end::game.ball.history)
-  -- in
-  --   if inBounds end && valid_spot then
-  --     (Playing {game | ball = updated_ball} Up, Cmd.none)
-  --   else
-  --     (Playing game Up, Cmd.none)
 
 -- accepts points that move in cardinal directions, or along -1, 1 slope diagonals
 validDragDirection : Point -> Point -> Bool
@@ -208,6 +203,15 @@ placePerson game start end =
       (Playing {game | people = updated_people} Up, Cmd.none)
     else
       (Playing game Up, Cmd.none)
+
+finishBallMove : Game -> (Model, Cmd Msg)
+finishBallMove game =
+  let
+    jumpedPeople = []
+    remainingPeople = []
+    ball = Ball game.ball.position []
+  in
+  (Playing (Game ball remainingPeople game.turn) Up, Cmd.none)
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -314,11 +318,11 @@ drawEndZones =
     , horizontal 20 "black" 1
     ]
 
-drawPath : List Point -> String -> Int -> Svg msg
-drawPath points_list color width =
+drawPath : Ball -> String -> Int -> Svg msg
+drawPath ball color width =
   let
     toStr p = String.fromInt p.x ++ "," ++ String.fromInt p.y
-    str_points = String.join " " <| List.map toStr points_list
+    str_points = String.join " " <| List.map toStr (ball.position::ball.history)
   in
     polyline [points str_points, stroke color, strokeWidth (String.fromInt width), fill "none", strokeLinecap "round", strokeLinejoin "round"] []
 
@@ -331,9 +335,9 @@ drawBall ball mouse =
   in
     case mouse of
       Dragging start current ->
-        [drawPath (current::ball.history) line_color line_width, drawCircle current (0.65 * grid_size) ball_color]
+        [drawPath ball line_color line_width, drawCircle current (0.65 * grid_size) ball_color]
       _ ->
-        [drawPath ball.history line_color line_width, drawCircle ball.position (0.45 * grid_size) ball_color]
+        [drawPath ball line_color line_width, drawCircle ball.position (0.45 * grid_size) ball_color]
 
 drawPeople : List Point -> List (Svg msg)
 drawPeople people =

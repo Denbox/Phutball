@@ -5185,11 +5185,7 @@ var $author$project$V2$init = function (_v0) {
 	var ball_pos = A2($author$project$V2$Point, $author$project$V2$margin + (7 * $author$project$V2$grid_size), $author$project$V2$margin + (9 * $author$project$V2$grid_size));
 	var game = A3(
 		$author$project$V2$Game,
-		A2(
-			$author$project$V2$Ball,
-			ball_pos,
-			_List_fromArray(
-				[ball_pos])),
+		A2($author$project$V2$Ball, ball_pos, _List_Nil),
 		_List_Nil,
 		$author$project$V2$X);
 	return _Utils_Tuple2(
@@ -5660,6 +5656,17 @@ var $author$project$V2$Pressing = F2(
 	function (a, b) {
 		return {$: 'Pressing', a: a, b: b};
 	});
+var $author$project$V2$finishBallMove = function (game) {
+	var remainingPeople = _List_Nil;
+	var jumpedPeople = _List_Nil;
+	var ball = A2($author$project$V2$Ball, game.ball.position, _List_Nil);
+	return _Utils_Tuple2(
+		A2(
+			$author$project$V2$Playing,
+			A3($author$project$V2$Game, ball, remainingPeople, game.turn),
+			$author$project$V2$Up),
+		$elm$core$Platform$Cmd$none);
+};
 var $elm$core$List$any = F2(
 	function (isOkay, list) {
 		any:
@@ -5796,7 +5803,7 @@ var $author$project$V2$moveBall = F3(
 						ball: A2(
 							$author$project$V2$Ball,
 							end,
-							A2($elm$core$List$cons, end, game.ball.history))
+							A2($elm$core$List$cons, start, game.ball.history))
 					}),
 				$author$project$V2$Up),
 			$elm$core$Platform$Cmd$none) : _Utils_Tuple2(
@@ -5877,10 +5884,12 @@ var $author$project$V2$update = F2(
 							$elm$core$Platform$Cmd$none);
 					case 'Dragging':
 						var start_pos = mouse.a;
-						return A3($author$project$V2$moveBall, game, start_pos, end_pos);
+						return (_Utils_eq(start_pos, end_pos) && ($elm$core$List$length(game.ball.history) > 0)) ? $author$project$V2$finishBallMove(game) : A3($author$project$V2$moveBall, game, start_pos, end_pos);
 					default:
 						var start_pos = mouse.a;
-						return A3($author$project$V2$placePerson, game, start_pos, end_pos);
+						return ($elm$core$List$length(game.ball.history) > 0) ? _Utils_Tuple2(
+							A2($author$project$V2$Playing, game, $author$project$V2$Up),
+							$elm$core$Platform$Cmd$none) : A3($author$project$V2$placePerson, game, start_pos, end_pos);
 				}
 		}
 	});
@@ -5938,14 +5947,17 @@ var $elm$svg$Svg$Attributes$strokeLinecap = _VirtualDom_attribute('stroke-lineca
 var $elm$svg$Svg$Attributes$strokeLinejoin = _VirtualDom_attribute('stroke-linejoin');
 var $elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
 var $author$project$V2$drawPath = F3(
-	function (points_list, color, width) {
+	function (ball, color, width) {
 		var toStr = function (p) {
 			return $elm$core$String$fromInt(p.x) + (',' + $elm$core$String$fromInt(p.y));
 		};
 		var str_points = A2(
 			$elm$core$String$join,
 			' ',
-			A2($elm$core$List$map, toStr, points_list));
+			A2(
+				$elm$core$List$map,
+				toStr,
+				A2($elm$core$List$cons, ball.position, ball.history)));
 		return A2(
 			$elm$svg$Svg$polyline,
 			_List_fromArray(
@@ -5970,17 +5982,13 @@ var $author$project$V2$drawBall = F2(
 			var current = mouse.b;
 			return _List_fromArray(
 				[
-					A3(
-					$author$project$V2$drawPath,
-					A2($elm$core$List$cons, current, ball.history),
-					line_color,
-					line_width),
+					A3($author$project$V2$drawPath, ball, line_color, line_width),
 					A3($author$project$V2$drawCircle, current, 0.65 * $author$project$V2$grid_size, ball_color)
 				]);
 		} else {
 			return _List_fromArray(
 				[
-					A3($author$project$V2$drawPath, ball.history, line_color, line_width),
+					A3($author$project$V2$drawPath, ball, line_color, line_width),
 					A3($author$project$V2$drawCircle, ball.position, 0.45 * $author$project$V2$grid_size, ball_color)
 				]);
 		}
