@@ -5720,8 +5720,8 @@ var $author$project$V2$game_height = ($author$project$V2$grid_size * (($author$p
 var $author$project$V2$num_cols = 15;
 var $author$project$V2$game_width = ($author$project$V2$grid_size * ($author$project$V2$num_cols - 1)) + (2 * $author$project$V2$margin);
 var $elm$core$Basics$ge = _Utils_ge;
-var $author$project$V2$inBounds = function (p) {
-	return (_Utils_cmp(p.x, $author$project$V2$margin) > -1) && ((_Utils_cmp(p.x, $author$project$V2$game_width - $author$project$V2$margin) < 1) && ((_Utils_cmp(p.y, $author$project$V2$margin + $author$project$V2$grid_size) > -1) && (_Utils_cmp(p.y, ($author$project$V2$game_height - $author$project$V2$margin) - $author$project$V2$grid_size) < 1)));
+var $author$project$V2$inBoundsBall = function (p) {
+	return (_Utils_cmp(p.x, $author$project$V2$margin) > -1) && ((_Utils_cmp(p.x, $author$project$V2$game_width - $author$project$V2$margin) < 1) && ((_Utils_cmp(p.y, $author$project$V2$margin) > -1) && (_Utils_cmp(p.y, $author$project$V2$game_height - $author$project$V2$margin) < 1)));
 };
 var $elm$core$Basics$negate = function (n) {
 	return -n;
@@ -5777,7 +5777,7 @@ var $author$project$V2$pointsBetween = F2(
 var $author$project$V2$validDrag = F3(
 	function (game, start, end) {
 		var valid_start = _Utils_eq(game.ball.position, start);
-		var valid_end = $author$project$V2$inBounds(end) && (!A2($elm$core$List$member, end, game.people));
+		var valid_end = $author$project$V2$inBoundsBall(end) && (!A2($elm$core$List$member, end, game.people));
 		var valid_direction = A2($author$project$V2$validDragDirection, start, end);
 		var all_people_between = A2(
 			$author$project$V2$allPeople,
@@ -5803,11 +5803,14 @@ var $author$project$V2$moveBall = F3(
 			A2($author$project$V2$Playing, game, $author$project$V2$Up),
 			$elm$core$Platform$Cmd$none);
 	});
+var $author$project$V2$inBoundsPerson = function (p) {
+	return (_Utils_cmp(p.x, $author$project$V2$margin) > -1) && ((_Utils_cmp(p.x, $author$project$V2$game_width - $author$project$V2$margin) < 1) && ((_Utils_cmp(p.y, $author$project$V2$margin + $author$project$V2$grid_size) > -1) && (_Utils_cmp(p.y, ($author$project$V2$game_height - $author$project$V2$margin) - $author$project$V2$grid_size) < 1)));
+};
 var $author$project$V2$placePerson = F3(
 	function (game, start, end) {
 		var updated_people = A2($elm$core$List$cons, end, game.people);
 		var new_person = (!A2($elm$core$List$member, end, game.people)) && (!_Utils_eq(end, game.ball.position));
-		return (_Utils_eq(start, end) && ($author$project$V2$inBounds(end) && new_person)) ? _Utils_Tuple2(
+		return (_Utils_eq(start, end) && ($author$project$V2$inBoundsPerson(end) && new_person)) ? _Utils_Tuple2(
 			A2(
 				$author$project$V2$Playing,
 				_Utils_update(

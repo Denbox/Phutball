@@ -36,9 +36,13 @@ snapToGrid p =
   in
     Point (snap p.x) (snap p.y)
 
-inBounds : Point -> Bool
-inBounds p =
+inBoundsPerson : Point -> Bool
+inBoundsPerson p =
   p.x >= margin && p.x <= game_width - margin && p.y >= margin + grid_size && p.y <= game_height - margin - grid_size
+
+inBoundsBall : Point -> Bool
+inBoundsBall p =
+  p.x >= margin && p.x <= game_width - margin && p.y >= margin && p.y <= game_height - margin
 
 type alias Game =
   { ball    : Ball
@@ -187,7 +191,7 @@ validDrag : Game -> Point -> Point -> Bool
 validDrag game start end =
   let
     valid_start = game.ball.position == start
-    valid_end = inBounds end && not (List.member end game.people)
+    valid_end = inBoundsBall end && not (List.member end game.people)
     valid_direction = validDragDirection start end
     all_people_between = allPeople (pointsBetween start end) game.people
   in
@@ -200,7 +204,7 @@ placePerson game start end =
     updated_people = (end::game.people)
     new_person = not (List.member end game.people) && end /= game.ball.position
   in
-    if start == end && inBounds end && new_person then
+    if start == end && inBoundsPerson end && new_person then
       (Playing {game | people = updated_people} Up, Cmd.none)
     else
       (Playing game Up, Cmd.none)
