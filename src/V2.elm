@@ -166,10 +166,11 @@ pointsBetween start end =
   if validDragDirection start end then
     let
       max_diff = Basics.max (abs (end.x - start.x)) (abs (end.y - start.y))
+      num_steps = max_diff // grid_size
       -- this will never cause divide by zero because validDragDirection checks that start /= end
-      shift = Point ((end.x - start.x) // max_diff) ((end.y - start.y) // max_diff)
+      shift = Point ((end.x - start.x) // num_steps) ((end.y - start.y) // num_steps)
     in
-      List.map (\i -> pAdd start (psMul shift i)) (List.range 1 (max_diff - 1))
+      List.map (\i -> pAdd start (psMul shift i)) (List.range 1 (num_steps - 1))
   else
     []
 
@@ -190,7 +191,7 @@ validDrag game start end =
     valid_direction = validDragDirection start end
     all_people_between = allPeople (pointsBetween start end) game.people
   in
-    valid_start && valid_end && valid_direction --&& all_people_between
+    valid_start && valid_end && valid_direction && all_people_between
 
 -- make this swap turns if successful
 placePerson : Game -> Point -> Point -> (Model, Cmd Msg)

@@ -5759,7 +5759,8 @@ var $author$project$V2$pointsBetween = F2(
 				$elm$core$Basics$max,
 				$elm$core$Basics$abs(end.x - start.x),
 				$elm$core$Basics$abs(end.y - start.y));
-			var shift = A2($author$project$V2$Point, ((end.x - start.x) / max_diff) | 0, ((end.y - start.y) / max_diff) | 0);
+			var num_steps = (max_diff / $author$project$V2$grid_size) | 0;
+			var shift = A2($author$project$V2$Point, ((end.x - start.x) / num_steps) | 0, ((end.y - start.y) / num_steps) | 0);
 			return A2(
 				$elm$core$List$map,
 				function (i) {
@@ -5768,7 +5769,7 @@ var $author$project$V2$pointsBetween = F2(
 						start,
 						A2($author$project$V2$psMul, shift, i));
 				},
-				A2($elm$core$List$range, 1, max_diff - 1));
+				A2($elm$core$List$range, 1, num_steps - 1));
 		} else {
 			return _List_Nil;
 		}
@@ -5782,7 +5783,7 @@ var $author$project$V2$validDrag = F3(
 			$author$project$V2$allPeople,
 			A2($author$project$V2$pointsBetween, start, end),
 			game.people);
-		return valid_start && (valid_end && valid_direction);
+		return valid_start && (valid_end && (valid_direction && all_people_between));
 	});
 var $author$project$V2$moveBall = F3(
 	function (game, start, end) {
