@@ -59,6 +59,11 @@ type Turn
   = X
   | O
 
+nextTurn turn =
+  case turn of
+    X -> O
+    O -> X
+
 type Mouse
   = Up
   | Pressing Point Point
@@ -185,12 +190,15 @@ allPeople points people =
 validDrag : Game -> Point -> Point -> Bool
 validDrag game start end =
   let
+    points_jumped_now = pointsBetween start end
+    points_jumped_all = jumpedList game.ball
     valid_start = game.ball.position == start
-    valid_end = inBoundsBall end && not (List.member end game.people)
+    valid_end = inBoundsBall end && (not (List.member end game.people) || (List.member end points_jumped_all))
     valid_direction = validDragDirection start end
-    all_people_between = allPeople (pointsBetween start end) game.people
+    all_people_between = allPeople points_jumped_now game.people
+    no_double_jumped_people = List.all (\point -> not (List.member point points_jumped_all)) points_jumped_now
   in
-    valid_start && valid_end && valid_direction && all_people_between
+    valid_start && valid_end && valid_direction && all_people_between && no_double_jumped_people
 
 -- make this swap turns if successful
 placePerson : Game -> Point -> Point -> (Model, Cmd Msg)
@@ -200,18 +208,29 @@ placePerson game start end =
     new_person = not (List.member end game.people) && end /= game.ball.position
   in
     if start == end && inBoundsPerson end && new_person then
-      (Playing {game | people = updated_people} Up, Cmd.none)
+      (Playing {game | people = updated_people, turn = nextTurn game.turn} Up, Cmd.none)
     else
       (Playing game Up, Cmd.none)
 
 finishBallMove : Game -> (Model, Cmd Msg)
 finishBallMove game =
   let
-    jumpedPeople = []
-    remainingPeople = []
+    jumped_people = jumpedList game.ball
+    not_jumped person = not (List.member person jumped_people)
+    remaining_people = List.filter not_jumped game.people
     ball = Ball game.ball.position []
   in
-  (Playing (Game ball remainingPeople game.turn) Up, Cmd.none)
+  (Playing (Game ball remaining_people (nextTurn game.turn)) Up, Cmd.none)
+
+jumpedList : Ball -> List Point
+jumpedList ball =
+  let
+    ball_path = ball.position::ball.history
+  in
+    case ball_path of
+      [] -> [] -- this case never occurs
+      [_] -> []
+      (_::tail) -> List.concat (List.map2 pointsBetween ball_path tail)
 
 subscriptions : Model -> Sub Msg
 subscriptions model =

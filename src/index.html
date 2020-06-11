@@ -5656,79 +5656,27 @@ var $author$project$V2$Pressing = F2(
 	function (a, b) {
 		return {$: 'Pressing', a: a, b: b};
 	});
-var $author$project$V2$finishBallMove = function (game) {
-	var remainingPeople = _List_Nil;
-	var jumpedPeople = _List_Nil;
-	var ball = A2($author$project$V2$Ball, game.ball.position, _List_Nil);
-	return _Utils_Tuple2(
-		A2(
-			$author$project$V2$Playing,
-			A3($author$project$V2$Game, ball, remainingPeople, game.turn),
-			$author$project$V2$Up),
-		$elm$core$Platform$Cmd$none);
-};
-var $elm$core$List$any = F2(
-	function (isOkay, list) {
-		any:
-		while (true) {
-			if (!list.b) {
-				return false;
-			} else {
-				var x = list.a;
-				var xs = list.b;
-				if (isOkay(x)) {
-					return true;
-				} else {
-					var $temp$isOkay = isOkay,
-						$temp$list = xs;
-					isOkay = $temp$isOkay;
-					list = $temp$list;
-					continue any;
-				}
-			}
-		}
-	});
-var $elm$core$Basics$composeL = F3(
-	function (g, f, x) {
-		return g(
-			f(x));
-	});
-var $elm$core$Basics$not = _Basics_not;
-var $elm$core$List$all = F2(
-	function (isOkay, list) {
-		return !A2(
-			$elm$core$List$any,
-			A2($elm$core$Basics$composeL, $elm$core$Basics$not, isOkay),
+var $elm$core$List$filter = F2(
+	function (isGood, list) {
+		return A3(
+			$elm$core$List$foldr,
+			F2(
+				function (x, xs) {
+					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
+				}),
+			_List_Nil,
 			list);
 	});
-var $elm$core$List$member = F2(
-	function (x, xs) {
-		return A2(
-			$elm$core$List$any,
-			function (a) {
-				return _Utils_eq(a, x);
-			},
-			xs);
+var $elm$core$List$append = F2(
+	function (xs, ys) {
+		if (!ys.b) {
+			return xs;
+		} else {
+			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
+		}
 	});
-var $author$project$V2$allPeople = F2(
-	function (points, people) {
-		var at_least_one_point = $elm$core$List$length(points) > 0;
-		var all_points_are_people = A2(
-			$elm$core$List$all,
-			function (x) {
-				return A2($elm$core$List$member, x, people);
-			},
-			points);
-		return all_points_are_people && at_least_one_point;
-	});
-var $author$project$V2$end_rows = 2;
-var $author$project$V2$num_rows = 19;
-var $author$project$V2$game_height = ($author$project$V2$grid_size * (($author$project$V2$num_rows + $author$project$V2$end_rows) - 1)) + (2 * $author$project$V2$margin);
-var $author$project$V2$num_cols = 15;
-var $author$project$V2$game_width = ($author$project$V2$grid_size * ($author$project$V2$num_cols - 1)) + (2 * $author$project$V2$margin);
-var $elm$core$Basics$ge = _Utils_ge;
-var $author$project$V2$inBoundsBall = function (p) {
-	return (_Utils_cmp(p.x, $author$project$V2$margin) > -1) && ((_Utils_cmp(p.x, $author$project$V2$game_width - $author$project$V2$margin) < 1) && ((_Utils_cmp(p.y, $author$project$V2$margin) > -1) && (_Utils_cmp(p.y, $author$project$V2$game_height - $author$project$V2$margin) < 1)));
+var $elm$core$List$concat = function (lists) {
+	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
 };
 var $elm$core$Basics$negate = function (n) {
 	return -n;
@@ -5781,16 +5729,124 @@ var $author$project$V2$pointsBetween = F2(
 			return _List_Nil;
 		}
 	});
+var $author$project$V2$jumpedList = function (ball) {
+	var ball_path = A2($elm$core$List$cons, ball.position, ball.history);
+	if (!ball_path.b) {
+		return _List_Nil;
+	} else {
+		if (!ball_path.b.b) {
+			return _List_Nil;
+		} else {
+			var tail = ball_path.b;
+			return $elm$core$List$concat(
+				A3($elm$core$List$map2, $author$project$V2$pointsBetween, ball_path, tail));
+		}
+	}
+};
+var $elm$core$List$any = F2(
+	function (isOkay, list) {
+		any:
+		while (true) {
+			if (!list.b) {
+				return false;
+			} else {
+				var x = list.a;
+				var xs = list.b;
+				if (isOkay(x)) {
+					return true;
+				} else {
+					var $temp$isOkay = isOkay,
+						$temp$list = xs;
+					isOkay = $temp$isOkay;
+					list = $temp$list;
+					continue any;
+				}
+			}
+		}
+	});
+var $elm$core$List$member = F2(
+	function (x, xs) {
+		return A2(
+			$elm$core$List$any,
+			function (a) {
+				return _Utils_eq(a, x);
+			},
+			xs);
+	});
+var $author$project$V2$O = {$: 'O'};
+var $author$project$V2$nextTurn = function (turn) {
+	if (turn.$ === 'X') {
+		return $author$project$V2$O;
+	} else {
+		return $author$project$V2$X;
+	}
+};
+var $elm$core$Basics$not = _Basics_not;
+var $author$project$V2$finishBallMove = function (game) {
+	var jumped_people = $author$project$V2$jumpedList(game.ball);
+	var not_jumped = function (person) {
+		return !A2($elm$core$List$member, person, jumped_people);
+	};
+	var remaining_people = A2($elm$core$List$filter, not_jumped, game.people);
+	var ball = A2($author$project$V2$Ball, game.ball.position, _List_Nil);
+	return _Utils_Tuple2(
+		A2(
+			$author$project$V2$Playing,
+			A3(
+				$author$project$V2$Game,
+				ball,
+				remaining_people,
+				$author$project$V2$nextTurn(game.turn)),
+			$author$project$V2$Up),
+		$elm$core$Platform$Cmd$none);
+};
+var $elm$core$Basics$composeL = F3(
+	function (g, f, x) {
+		return g(
+			f(x));
+	});
+var $elm$core$List$all = F2(
+	function (isOkay, list) {
+		return !A2(
+			$elm$core$List$any,
+			A2($elm$core$Basics$composeL, $elm$core$Basics$not, isOkay),
+			list);
+	});
+var $author$project$V2$allPeople = F2(
+	function (points, people) {
+		var at_least_one_point = $elm$core$List$length(points) > 0;
+		var all_points_are_people = A2(
+			$elm$core$List$all,
+			function (x) {
+				return A2($elm$core$List$member, x, people);
+			},
+			points);
+		return all_points_are_people && at_least_one_point;
+	});
+var $author$project$V2$end_rows = 2;
+var $author$project$V2$num_rows = 19;
+var $author$project$V2$game_height = ($author$project$V2$grid_size * (($author$project$V2$num_rows + $author$project$V2$end_rows) - 1)) + (2 * $author$project$V2$margin);
+var $author$project$V2$num_cols = 15;
+var $author$project$V2$game_width = ($author$project$V2$grid_size * ($author$project$V2$num_cols - 1)) + (2 * $author$project$V2$margin);
+var $elm$core$Basics$ge = _Utils_ge;
+var $author$project$V2$inBoundsBall = function (p) {
+	return (_Utils_cmp(p.x, $author$project$V2$margin) > -1) && ((_Utils_cmp(p.x, $author$project$V2$game_width - $author$project$V2$margin) < 1) && ((_Utils_cmp(p.y, $author$project$V2$margin) > -1) && (_Utils_cmp(p.y, $author$project$V2$game_height - $author$project$V2$margin) < 1)));
+};
 var $author$project$V2$validDrag = F3(
 	function (game, start, end) {
 		var valid_start = _Utils_eq(game.ball.position, start);
-		var valid_end = $author$project$V2$inBoundsBall(end) && (!A2($elm$core$List$member, end, game.people));
 		var valid_direction = A2($author$project$V2$validDragDirection, start, end);
-		var all_people_between = A2(
-			$author$project$V2$allPeople,
-			A2($author$project$V2$pointsBetween, start, end),
-			game.people);
-		return valid_start && (valid_end && (valid_direction && all_people_between));
+		var points_jumped_now = A2($author$project$V2$pointsBetween, start, end);
+		var points_jumped_all = $author$project$V2$jumpedList(game.ball);
+		var valid_end = $author$project$V2$inBoundsBall(end) && ((!A2($elm$core$List$member, end, game.people)) || A2($elm$core$List$member, end, points_jumped_all));
+		var no_double_jumped_people = A2(
+			$elm$core$List$all,
+			function (point) {
+				return !A2($elm$core$List$member, point, points_jumped_all);
+			},
+			points_jumped_now);
+		var all_people_between = A2($author$project$V2$allPeople, points_jumped_now, game.people);
+		return valid_start && (valid_end && (valid_direction && (all_people_between && no_double_jumped_people)));
 	});
 var $author$project$V2$moveBall = F3(
 	function (game, start, end) {
@@ -5822,7 +5878,10 @@ var $author$project$V2$placePerson = F3(
 				$author$project$V2$Playing,
 				_Utils_update(
 					game,
-					{people: updated_people}),
+					{
+						people: updated_people,
+						turn: $author$project$V2$nextTurn(game.turn)
+					}),
 				$author$project$V2$Up),
 			$elm$core$Platform$Cmd$none) : _Utils_Tuple2(
 			A2($author$project$V2$Playing, game, $author$project$V2$Up),
