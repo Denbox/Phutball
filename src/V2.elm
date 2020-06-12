@@ -136,9 +136,13 @@ update msg model =
               Dragging start_pos _ ->
                 if start_pos == end_pos && List.length game.ball.history > 0 then
                   finishBallMove game
-                  -- (Playing {game | ball = Ball end_pos []} Up, Cmd.none)
-                else
+                else if validDrag game start_pos end_pos then
                   moveBall game start_pos end_pos
+                else if validUndrag game start_pos end_pos then
+                  undoBallMove game
+                else
+                  (Playing game Up, Cmd.none)
+                  -- (Playing {game | ball = } Up, Cmd.none)
               Pressing start_pos _ ->
                 if List.length game.ball.history > 0 then
                   (Playing game Up, Cmd.none) -- not allowed to place while moving
@@ -148,10 +152,14 @@ update msg model =
 -- make this swap turns if successful and player finishes
 moveBall : Game -> Point -> Point -> (Model, Cmd Msg)
 moveBall game start end =
-  if validDrag game start end then
-    (Playing {game | ball = Ball end (start::game.ball.history)} Up, Cmd.none)
-  else
-    (Playing game Up, Cmd.none)
+  (Playing {game | ball = Ball end (start::game.ball.history)} Up, Cmd.none)
+
+undoBallMove : Game -> (Model, Cmd Msg)
+undoBallMove game =
+  case game.ball.history of
+    [] -> (Playing game Up, Cmd.none) -- this never happens
+    (x::xs) -> (Playing {game | ball = Ball x xs} Up, Cmd.none) -- undo once
+  -- (Playing {game | ball = Ball })
 
 -- accepts points that move in cardinal directions, or along -1, 1 slope diagonals
 validDragDirection : Point -> Point -> Bool
@@ -199,6 +207,13 @@ validDrag game start end =
     no_double_jumped_people = List.all (\point -> not (List.member point points_jumped_all)) points_jumped_now
   in
     valid_start && valid_end && valid_direction && all_people_between && no_double_jumped_people
+
+validUndrag : Game -> Point -> Point -> Bool
+validUndrag game start end =
+  case game.ball.history of
+    [] -> False
+    (x::xs) -> start == game.ball.position && end == x
+
 
 -- make this swap turns if successful
 placePerson : Game -> Point -> Point -> (Model, Cmd Msg)
@@ -338,13 +353,21 @@ drawEndZones =
     , horizontal 20 "black" 1
     ]
 
-drawPath : Ball -> String -> Int -> Svg msg
-drawPath ball color width =
-  let
-    toStr p = String.fromInt p.x ++ "," ++ String.fromInt p.y
-    str_points = String.join " " <| List.map toStr (ball.position::ball.history)
-  in
-    polyline [points str_points, stroke color, strokeWidth (String.fromInt width), fill "none", strokeLinecap "round", strokeLinejoin "round"] []
+drawPath : Ball -> Maybe Point -> String -> Int -> Svg msg
+drawPath ball mouse_pos color width =
+  case mouse_pos of
+    Nothing ->
+      let
+        toStr p = String.fromInt p.x ++ "," ++ String.fromInt p.y
+        str_points = String.join " " <| List.map toStr (ball.position::ball.history)
+      in
+        polyline [points str_points, stroke color, strokeWidth (String.fromInt width), fill "none", strokeLinecap "round", strokeLinejoin "round"] []
+    Just pos ->
+      let
+        toStr p = String.fromInt p.x ++ "," ++ String.fromInt p.y
+        str_points = String.join " " <| List.map toStr (pos::ball.position::ball.history)
+      in
+        polyline [points str_points, stroke color, strokeWidth (String.fromInt width), fill "none", strokeLinecap "round", strokeLinejoin "round"] []
 
 drawBall : Ball -> Mouse -> List (Svg msg)
 drawBall ball mouse =
@@ -356,9 +379,9 @@ drawBall ball mouse =
   in
     case mouse of
       Dragging start current ->
-        [drawPath ball line_color line_width, drawCircle current (0.65 * grid_size) ball_color opacity]
+        [drawPath ball (Just current) line_color line_width, drawCircle current (0.65 * grid_size) ball_color opacity]
       _ ->
-        [drawPath ball line_color line_width, drawCircle ball.position (0.45 * grid_size) ball_color opacity]
+        [drawPath ball Nothing line_color line_width, drawCircle ball.position (0.45 * grid_size) ball_color opacity]
 
 drawPeople : Game -> List (Svg msg)
 drawPeople game =
