@@ -5186,7 +5186,11 @@ var $author$project$V3$init = function (_v0) {
 					A2($author$project$V3$Coord, 1, 1),
 					_List_Nil,
 					$elm$core$Maybe$Nothing),
-				_List_Nil,
+				_List_fromArray(
+					[
+						A2($author$project$V3$Coord, 5, 2),
+						A2($author$project$V3$Coord, 10, 10)
+					]),
 				$author$project$V3$X)),
 		$elm$core$Platform$Cmd$none);
 };
@@ -5768,6 +5772,43 @@ var $author$project$V3$grid = F2(
 		var vertical_lines = A3($elm$core$List$map2, gridLine, top, bottom);
 		return _Utils_ap(vertical_lines, horizontal_lines);
 	});
+var $elm$svg$Svg$circle = $elm$svg$Svg$trustedNode('circle');
+var $elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
+var $elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
+var $elm$core$String$fromFloat = _String_fromNumber;
+var $elm$svg$Svg$Attributes$opacity = _VirtualDom_attribute('opacity');
+var $elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
+var $author$project$V3$disk = F4(
+	function (point, color, radius, opac) {
+		return A2(
+			$elm$svg$Svg$circle,
+			_List_fromArray(
+				[
+					$elm$svg$Svg$Attributes$cx(
+					$elm$core$String$fromInt(point.x)),
+					$elm$svg$Svg$Attributes$cy(
+					$elm$core$String$fromInt(point.y)),
+					$elm$svg$Svg$Attributes$r(
+					$elm$core$String$fromFloat($author$project$V3$unit * radius)),
+					$elm$svg$Svg$Attributes$fill(color),
+					$elm$svg$Svg$Attributes$opacity(
+					$elm$core$String$fromFloat(opac))
+				]),
+			_List_Nil);
+	});
+var $author$project$V3$stones = function (coords) {
+	return A2(
+		$elm$core$List$map,
+		function (c) {
+			return A4(
+				$author$project$V3$disk,
+				$author$project$V3$unSnap(c),
+				'black',
+				0.45,
+				1);
+		},
+		coords);
+};
 var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
 var $author$project$V3$draw = function (game) {
 	return A2(
@@ -5784,7 +5825,9 @@ var $author$project$V3$draw = function (game) {
 				[$author$project$V3$background]),
 			_Utils_ap(
 				$author$project$V3$endZones,
-				A2($author$project$V3$grid, $author$project$V3$n_rows, $author$project$V3$n_cols))));
+				_Utils_ap(
+					A2($author$project$V3$grid, $author$project$V3$n_rows, $author$project$V3$n_cols),
+					$author$project$V3$stones(game.stones)))));
 };
 var $author$project$V3$view = function (model) {
 	var game = model.a;

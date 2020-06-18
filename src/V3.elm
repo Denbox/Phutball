@@ -120,6 +120,24 @@ endZones =
   in
     [top_zone, bottom_zone]
 
+disk : Point -> String -> Float -> Float -> Svg msg
+disk point color radius opac =
+  circle
+  [ cx <| String.fromInt <| point.x
+  , cy <| String.fromInt <| point.y
+  , r <| String.fromFloat <| unit * radius
+  , fill color
+  , opacity <| String.fromFloat opac
+  ] []
+
+stones : List Coord -> List (Svg msg)
+stones coords =
+  List.map (\c -> disk (unSnap c) "black" 0.45 1) coords
+
+jumpedStones : List Coord -> List (Svg msg)
+jumpedStones coords =
+  List.map (\c -> disk (unSnap c) "black" 0.45 0.5) coords
+
 lineSegment : Point -> Point -> String -> Int -> Svg msg
 lineSegment start end color width =
   line
@@ -150,7 +168,7 @@ update msg model =
 
 init : () -> (Model, Cmd Msg)
 init _ =
-  (Playing <| Game (Ball (Coord 1 1) [] Nothing) [] X, Cmd.none)
+  (Playing <| Game (Ball (Coord 1 1) [] Nothing) [Coord 5 2, Coord 10 10] X, Cmd.none)
 
 view : Model -> Html Msg
 view model =
@@ -160,7 +178,7 @@ view model =
 
 draw game =
   svg [width <| String.fromInt game_width, height <| String.fromInt game_height]
-  ([background] ++ endZones ++ (grid n_rows n_cols))
+  ([background] ++ endZones ++ (grid n_rows n_cols) ++ stones game.stones)
 
 -- drawCircle : Point -> Float -> String -> Float -> Svg msg
 -- drawCircle point radius c o = circle
