@@ -5183,7 +5183,7 @@ var $author$project$V3$init = function (_v0) {
 				$author$project$V3$Game,
 				A3(
 					$author$project$V3$Ball,
-					A2($author$project$V3$Coord, 1, 1),
+					A2($author$project$V3$Coord, 7, 9),
 					_List_Nil,
 					$elm$core$Maybe$Nothing),
 				_List_fromArray(
@@ -5205,19 +5205,23 @@ var $elm$json$Json$Decode$field = _Json_decodeField;
 var $elm$json$Json$Decode$int = _Json_decodeInt;
 var $author$project$V3$decodeX = A2($elm$json$Json$Decode$field, 'pageX', $elm$json$Json$Decode$int);
 var $author$project$V3$decodeY = A2($elm$json$Json$Decode$field, 'pageY', $elm$json$Json$Decode$int);
-var $author$project$V3$Point = F2(
+var $author$project$Draw$Point = F2(
 	function (x, y) {
 		return {x: x, y: y};
 	});
-var $author$project$V3$unit = 35;
-var $author$project$V3$margin = $author$project$V3$unit;
-var $author$project$V3$snap = function (p) {
-	return A2($author$project$V3$Coord, ((p.x / $author$project$V3$unit) | 0) - $author$project$V3$margin, ((p.y / $author$project$V3$unit) | 0) - $author$project$V3$margin);
+var $author$project$Draw$Coord = F2(
+	function (x, y) {
+		return {x: x, y: y};
+	});
+var $author$project$Draw$unit = 35;
+var $author$project$Draw$margin = $author$project$Draw$unit;
+var $author$project$Draw$snap = function (p) {
+	return A2($author$project$Draw$Coord, ((p.x / $author$project$Draw$unit) | 0) - $author$project$Draw$margin, ((p.y / $author$project$Draw$unit) | 0) - $author$project$Draw$margin);
 };
 var $author$project$V3$toGrid = F2(
 	function (x, y) {
-		return $author$project$V3$snap(
-			A2($author$project$V3$Point, x, y));
+		return $author$project$Draw$snap(
+			A2($author$project$Draw$Point, x, y));
 	});
 var $author$project$V3$decodeGridXY = A3($elm$json$Json$Decode$map2, $author$project$V3$toGrid, $author$project$V3$decodeX, $author$project$V3$decodeY);
 var $elm$browser$Browser$Events$Document = {$: 'Document'};
@@ -5638,49 +5642,104 @@ var $author$project$V3$update = F2(
 		return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 	});
 var $elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
-var $author$project$V3$n_rows = 19;
-var $author$project$V3$game_height = ($author$project$V3$margin * 2) + ($author$project$V3$unit * ($author$project$V3$n_rows - 1));
-var $author$project$V3$n_cols = 15;
-var $author$project$V3$game_width = ($author$project$V3$margin * 2) + ($author$project$V3$unit * ($author$project$V3$n_cols - 1));
+var $author$project$Draw$n_rows = 19;
+var $author$project$Draw$game_height = ($author$project$Draw$margin * 2) + ($author$project$Draw$unit * ($author$project$Draw$n_rows - 1));
+var $author$project$Draw$n_cols = 15;
+var $author$project$Draw$game_width = ($author$project$Draw$margin * 2) + ($author$project$Draw$unit * ($author$project$Draw$n_cols - 1));
 var $elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
 var $elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
 var $elm$svg$Svg$rect = $elm$svg$Svg$trustedNode('rect');
 var $elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
 var $elm$svg$Svg$Attributes$x = _VirtualDom_attribute('x');
 var $elm$svg$Svg$Attributes$y = _VirtualDom_attribute('y');
-var $author$project$V3$background = A2(
+var $author$project$Draw$background = A2(
 	$elm$svg$Svg$rect,
 	_List_fromArray(
 		[
 			$elm$svg$Svg$Attributes$x('0'),
 			$elm$svg$Svg$Attributes$y('0'),
 			$elm$svg$Svg$Attributes$width(
-			$elm$core$String$fromInt($author$project$V3$game_width)),
+			$elm$core$String$fromInt($author$project$Draw$game_width)),
 			$elm$svg$Svg$Attributes$height(
-			$elm$core$String$fromInt($author$project$V3$game_height)),
+			$elm$core$String$fromInt($author$project$Draw$game_height)),
 			$elm$svg$Svg$Attributes$fill('BurlyWood')
 		]),
 	_List_Nil);
-var $author$project$V3$end_zone_length = 2;
+var $elm$svg$Svg$circle = $elm$svg$Svg$trustedNode('circle');
+var $elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
+var $elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
+var $elm$core$String$fromFloat = _String_fromNumber;
+var $elm$svg$Svg$Attributes$opacity = _VirtualDom_attribute('opacity');
+var $elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
+var $author$project$Draw$disk = F4(
+	function (point, color, radius, opac) {
+		return A2(
+			$elm$svg$Svg$circle,
+			_List_fromArray(
+				[
+					$elm$svg$Svg$Attributes$cx(
+					$elm$core$String$fromInt(point.x)),
+					$elm$svg$Svg$Attributes$cy(
+					$elm$core$String$fromInt(point.y)),
+					$elm$svg$Svg$Attributes$r(
+					$elm$core$String$fromFloat($author$project$Draw$unit * radius)),
+					$elm$svg$Svg$Attributes$fill(color),
+					$elm$svg$Svg$Attributes$opacity(
+					$elm$core$String$fromFloat(opac))
+				]),
+			_List_Nil);
+	});
+var $author$project$Draw$ball = F2(
+	function (point, dragging) {
+		var scale = dragging ? 0.65 : 0.45;
+		return A4($author$project$Draw$disk, point, 'white', scale, 1);
+	});
+var $elm$svg$Svg$Attributes$points = _VirtualDom_attribute('points');
+var $elm$svg$Svg$polyline = $elm$svg$Svg$trustedNode('polyline');
 var $elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
-var $elm$svg$Svg$Attributes$strokeDasharray = _VirtualDom_attribute('stroke-dasharray');
+var $elm$svg$Svg$Attributes$strokeLinecap = _VirtualDom_attribute('stroke-linecap');
+var $elm$svg$Svg$Attributes$strokeLinejoin = _VirtualDom_attribute('stroke-linejoin');
 var $elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
-var $author$project$V3$endZones = function () {
+var $author$project$Draw$ballTrail = function (ball_history_points) {
+	var pointToStr = function (point) {
+		return $elm$core$String$fromInt(point.x) + (',' + $elm$core$String$fromInt(point.y));
+	};
+	var ball_history_str = A2(
+		$elm$core$String$join,
+		' ',
+		A2($elm$core$List$map, pointToStr, ball_history_points));
+	return A2(
+		$elm$svg$Svg$polyline,
+		_List_fromArray(
+			[
+				$elm$svg$Svg$Attributes$points(ball_history_str),
+				$elm$svg$Svg$Attributes$stroke('red'),
+				$elm$svg$Svg$Attributes$strokeWidth(
+				$elm$core$String$fromInt(10)),
+				$elm$svg$Svg$Attributes$fill('none'),
+				$elm$svg$Svg$Attributes$strokeLinecap('round'),
+				$elm$svg$Svg$Attributes$strokeLinejoin('round')
+			]),
+		_List_Nil);
+};
+var $author$project$Draw$end_zone_length = 2;
+var $elm$svg$Svg$Attributes$strokeDasharray = _VirtualDom_attribute('stroke-dasharray');
+var $author$project$Draw$endZones = function () {
 	var top_zone = A2(
 		$elm$svg$Svg$rect,
 		_List_fromArray(
 			[
 				$elm$svg$Svg$Attributes$x(
-				$elm$core$String$fromInt(($author$project$V3$margin / 2) | 0)),
+				$elm$core$String$fromInt(($author$project$Draw$margin / 2) | 0)),
 				$elm$svg$Svg$Attributes$y(
-				$elm$core$String$fromInt(($author$project$V3$margin / 2) | 0)),
+				$elm$core$String$fromInt(($author$project$Draw$margin / 2) | 0)),
 				$elm$svg$Svg$Attributes$width(
-				$elm$core$String$fromInt($author$project$V3$unit * $author$project$V3$n_cols)),
+				$elm$core$String$fromInt($author$project$Draw$unit * $author$project$Draw$n_cols)),
 				$elm$svg$Svg$Attributes$height(
-				$elm$core$String$fromInt($author$project$V3$unit * $author$project$V3$end_zone_length)),
+				$elm$core$String$fromInt($author$project$Draw$unit * $author$project$Draw$end_zone_length)),
 				$elm$svg$Svg$Attributes$fill('none'),
 				$elm$svg$Svg$Attributes$stroke('blue'),
-				$elm$svg$Svg$Attributes$strokeDasharray('10,10'),
+				$elm$svg$Svg$Attributes$strokeDasharray('13,6'),
 				$elm$svg$Svg$Attributes$strokeWidth('2')
 			]),
 		_List_Nil);
@@ -5689,16 +5748,16 @@ var $author$project$V3$endZones = function () {
 		_List_fromArray(
 			[
 				$elm$svg$Svg$Attributes$x(
-				$elm$core$String$fromInt(($author$project$V3$margin / 2) | 0)),
+				$elm$core$String$fromInt(($author$project$Draw$margin / 2) | 0)),
 				$elm$svg$Svg$Attributes$y(
-				$elm$core$String$fromInt(($author$project$V3$game_height - ($author$project$V3$unit * $author$project$V3$end_zone_length)) - (($author$project$V3$margin / 2) | 0))),
+				$elm$core$String$fromInt(($author$project$Draw$game_height - ($author$project$Draw$unit * $author$project$Draw$end_zone_length)) - (($author$project$Draw$margin / 2) | 0))),
 				$elm$svg$Svg$Attributes$width(
-				$elm$core$String$fromInt($author$project$V3$unit * $author$project$V3$n_cols)),
+				$elm$core$String$fromInt($author$project$Draw$unit * $author$project$Draw$n_cols)),
 				$elm$svg$Svg$Attributes$height(
-				$elm$core$String$fromInt($author$project$V3$unit * $author$project$V3$end_zone_length)),
+				$elm$core$String$fromInt($author$project$Draw$unit * $author$project$Draw$end_zone_length)),
 				$elm$svg$Svg$Attributes$fill('none'),
 				$elm$svg$Svg$Attributes$stroke('blue'),
-				$elm$svg$Svg$Attributes$strokeDasharray('10,10'),
+				$elm$svg$Svg$Attributes$strokeDasharray('13,6'),
 				$elm$svg$Svg$Attributes$strokeWidth('2')
 			]),
 		_List_Nil);
@@ -5710,7 +5769,7 @@ var $elm$svg$Svg$Attributes$x1 = _VirtualDom_attribute('x1');
 var $elm$svg$Svg$Attributes$x2 = _VirtualDom_attribute('x2');
 var $elm$svg$Svg$Attributes$y1 = _VirtualDom_attribute('y1');
 var $elm$svg$Svg$Attributes$y2 = _VirtualDom_attribute('y2');
-var $author$project$V3$lineSegment = F4(
+var $author$project$Draw$lineSegment = F4(
 	function (start, end, color, width) {
 		return A2(
 			$elm$svg$Svg$line,
@@ -5730,35 +5789,35 @@ var $author$project$V3$lineSegment = F4(
 				]),
 			_List_Nil);
 	});
-var $author$project$V3$unSnap = function (c) {
-	return A2($author$project$V3$Point, (c.x * $author$project$V3$unit) + $author$project$V3$margin, (c.y * $author$project$V3$unit) + $author$project$V3$margin);
+var $author$project$Draw$unSnap = function (c) {
+	return A2($author$project$Draw$Point, (c.x * $author$project$Draw$unit) + $author$project$Draw$margin, (c.y * $author$project$Draw$unit) + $author$project$Draw$margin);
 };
-var $author$project$V3$grid = F2(
+var $author$project$Draw$grid = F2(
 	function (num_rows, num_cols) {
 		var top = A2(
 			$elm$core$List$map,
 			function (x) {
-				return A2($author$project$V3$Coord, x, $author$project$V3$end_zone_length - 1);
+				return A2($author$project$Draw$Coord, x, $author$project$Draw$end_zone_length - 1);
 			},
 			A2($elm$core$List$range, 0, num_cols - 1));
 		var right = A2(
 			$elm$core$List$map,
 			function (y) {
-				return A2($author$project$V3$Coord, num_cols - 1, y);
+				return A2($author$project$Draw$Coord, num_cols - 1, y);
 			},
 			A2($elm$core$List$range, 0, num_rows - 1));
 		var left = A2(
 			$elm$core$List$map,
 			function (y) {
-				return A2($author$project$V3$Coord, 0, y);
+				return A2($author$project$Draw$Coord, 0, y);
 			},
 			A2($elm$core$List$range, 0, num_rows - 1));
 		var gridLine = F2(
 			function (start, end) {
 				return A4(
-					$author$project$V3$lineSegment,
-					$author$project$V3$unSnap(start),
-					$author$project$V3$unSnap(end),
+					$author$project$Draw$lineSegment,
+					$author$project$Draw$unSnap(start),
+					$author$project$Draw$unSnap(end),
 					'black',
 					1);
 			});
@@ -5766,43 +5825,19 @@ var $author$project$V3$grid = F2(
 		var bottom = A2(
 			$elm$core$List$map,
 			function (x) {
-				return A2($author$project$V3$Coord, x, (num_rows - 1) - ($author$project$V3$end_zone_length - 1));
+				return A2($author$project$Draw$Coord, x, (num_rows - 1) - ($author$project$Draw$end_zone_length - 1));
 			},
 			A2($elm$core$List$range, 0, num_cols - 1));
 		var vertical_lines = A3($elm$core$List$map2, gridLine, top, bottom);
 		return _Utils_ap(vertical_lines, horizontal_lines);
 	});
-var $elm$svg$Svg$circle = $elm$svg$Svg$trustedNode('circle');
-var $elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
-var $elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
-var $elm$core$String$fromFloat = _String_fromNumber;
-var $elm$svg$Svg$Attributes$opacity = _VirtualDom_attribute('opacity');
-var $elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
-var $author$project$V3$disk = F4(
-	function (point, color, radius, opac) {
-		return A2(
-			$elm$svg$Svg$circle,
-			_List_fromArray(
-				[
-					$elm$svg$Svg$Attributes$cx(
-					$elm$core$String$fromInt(point.x)),
-					$elm$svg$Svg$Attributes$cy(
-					$elm$core$String$fromInt(point.y)),
-					$elm$svg$Svg$Attributes$r(
-					$elm$core$String$fromFloat($author$project$V3$unit * radius)),
-					$elm$svg$Svg$Attributes$fill(color),
-					$elm$svg$Svg$Attributes$opacity(
-					$elm$core$String$fromFloat(opac))
-				]),
-			_List_Nil);
-	});
-var $author$project$V3$stones = function (coords) {
+var $author$project$Draw$stones = function (coords) {
 	return A2(
 		$elm$core$List$map,
 		function (c) {
 			return A4(
-				$author$project$V3$disk,
-				$author$project$V3$unSnap(c),
+				$author$project$Draw$disk,
+				$author$project$Draw$unSnap(c),
 				'black',
 				0.45,
 				1);
@@ -5810,28 +5845,52 @@ var $author$project$V3$stones = function (coords) {
 		coords);
 };
 var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
-var $author$project$V3$draw = function (game) {
-	return A2(
-		$elm$svg$Svg$svg,
-		_List_fromArray(
-			[
-				$elm$svg$Svg$Attributes$width(
-				$elm$core$String$fromInt($author$project$V3$game_width)),
-				$elm$svg$Svg$Attributes$height(
-				$elm$core$String$fromInt($author$project$V3$game_height))
-			]),
-		_Utils_ap(
+var $author$project$Draw$draw = F4(
+	function (stone_coords, ball_history, ball_point, dragging) {
+		return A2(
+			$elm$svg$Svg$svg,
 			_List_fromArray(
-				[$author$project$V3$background]),
+				[
+					$elm$svg$Svg$Attributes$width(
+					$elm$core$String$fromInt($author$project$Draw$game_width)),
+					$elm$svg$Svg$Attributes$height(
+					$elm$core$String$fromInt($author$project$Draw$game_height))
+				]),
 			_Utils_ap(
-				$author$project$V3$endZones,
+				_List_fromArray(
+					[$author$project$Draw$background]),
 				_Utils_ap(
-					A2($author$project$V3$grid, $author$project$V3$n_rows, $author$project$V3$n_cols),
-					$author$project$V3$stones(game.stones)))));
+					$author$project$Draw$endZones,
+					_Utils_ap(
+						A2($author$project$Draw$grid, $author$project$Draw$n_rows, $author$project$Draw$n_cols),
+						_Utils_ap(
+							$author$project$Draw$stones(stone_coords),
+							_List_fromArray(
+								[
+									$author$project$Draw$ballTrail(ball_history),
+									A2($author$project$Draw$ball, ball_point, dragging)
+								]))))));
+	});
+var $author$project$V3$getBallPoint = function (b) {
+	var _v0 = b.point;
+	if (_v0.$ === 'Nothing') {
+		return $author$project$Draw$unSnap(b.coord);
+	} else {
+		var point = _v0.a;
+		return point;
+	}
 };
+var $elm$core$Basics$neq = _Utils_notEqual;
 var $author$project$V3$view = function (model) {
 	var game = model.a;
-	return $author$project$V3$draw(game);
+	var stones = game.stones;
+	var dragging = !_Utils_eq(game.ball.point, $elm$core$Maybe$Nothing);
+	var ball_position = $author$project$V3$getBallPoint(game.ball);
+	var ball_history = A2(
+		$elm$core$List$cons,
+		ball_position,
+		A2($elm$core$List$map, $author$project$Draw$unSnap, game.ball.history));
+	return A4($author$project$Draw$draw, stones, ball_history, ball_position, dragging);
 };
 var $author$project$V3$main = $elm$browser$Browser$element(
 	{init: $author$project$V3$init, subscriptions: $author$project$V3$subscriptions, update: $author$project$V3$update, view: $author$project$V3$view});

@@ -1,11 +1,9 @@
 module V3 exposing (..)
-import Svg exposing (..)
-import Svg.Attributes exposing (..)
-import List.Extra exposing (cartesianProduct)
 import Browser
 import Browser.Events exposing (onMouseDown, onMouseUp, onMouseMove)
 import Html exposing (Html)
 import Json.Decode exposing (..)
+import Draw exposing (..)
 
 -- Okay, why V3? Well the last version worked well. We had undo/redo, and the graphics were good
 -- However, the goal is to set this up for online play
@@ -33,12 +31,6 @@ type alias Coord =
   , y : Int
   }
 
--- used for graphics
-type alias Point =
-  { x : Int
-  , y : Int
-  }
-
 type alias Ball =
   { coord : Coord
   , history : List Coord
@@ -51,20 +43,18 @@ type alias Game =
   , turn : Turn
   }
 
-n_rows = 19
-n_cols = 15
-end_zone_length = 2
-
-unit = 35 -- the length of an edge of a grid cell
-margin = unit
-game_width  = margin * 2 + unit * (n_cols - 1)
-game_height = margin * 2 + unit * (n_rows - 1)
-
 validBallCoord c =
   List.member c.x (List.range 0 <| n_cols - 1) && List.member c.y (List.range 0 <| n_rows - 1)
 
 validStoneCoord c =
   List.member c.x (List.range 0 <| n_cols - 1) && List.member c.y (List.range (end_zone_length - 1) <| n_rows - 1 - (end_zone_length - 1))
+
+getBallPoint b =
+  case b.point of
+    Nothing ->
+      Draw.unSnap b.coord
+    Just point ->
+      point
 
 cAdd : Coord -> Coord -> Coord
 cAdd a b =
@@ -74,111 +64,25 @@ cSub : Coord -> Coord -> Coord
 cSub a b =
   Coord (a.x - b.x) (a.y - b.y)
 
-snap : Point -> Coord
-snap p =
-  Coord (p.x // unit - margin) (p.y // unit - margin)
-
-unSnap : Coord -> Point
-unSnap c =
-  Point (c.x * unit + margin) (c.y * unit + margin)
-
-background : Svg msg
-background =
-  rect
-    [ x "0"
-    , y "0"
-    , width  <| String.fromInt game_width
-    , height <| String.fromInt game_height
-    , fill "BurlyWood"
-    ] []
-
-endZones : List (Svg msg)
-endZones =
-  let
-    top_zone =
-      rect
-      [ x      <| String.fromInt <| margin // 2
-      , y      <| String.fromInt <| margin // 2
-      , width  <| String.fromInt <| unit * n_cols
-      , height <| String.fromInt <| unit * end_zone_length
-      , fill "none"
-      , stroke "blue"
-      , strokeDasharray "10,10"
-      , strokeWidth "2"
-      ] []
-    bottom_zone =
-      rect
-      [ x      <| String.fromInt <| margin // 2
-      , y      <| String.fromInt <| game_height - unit * end_zone_length - margin // 2
-      , width  <| String.fromInt <| unit * n_cols
-      , height <| String.fromInt <| unit * end_zone_length
-      , fill "none"
-      , stroke "blue"
-      , strokeDasharray "10,10"
-      , strokeWidth "2"
-      ] []
-  in
-    [top_zone, bottom_zone]
-
-disk : Point -> String -> Float -> Float -> Svg msg
-disk point color radius opac =
-  circle
-  [ cx <| String.fromInt <| point.x
-  , cy <| String.fromInt <| point.y
-  , r <| String.fromFloat <| unit * radius
-  , fill color
-  , opacity <| String.fromFloat opac
-  ] []
-
-stones : List Coord -> List (Svg msg)
-stones coords =
-  List.map (\c -> disk (unSnap c) "black" 0.45 1) coords
-
-jumpedStones : List Coord -> List (Svg msg)
-jumpedStones coords =
-  List.map (\c -> disk (unSnap c) "black" 0.45 0.5) coords
-
-lineSegment : Point -> Point -> String -> Int -> Svg msg
-lineSegment start end color width =
-  line
-  [ x1 <| String.fromInt start.x
-  , y1 <| String.fromInt start.y
-  , x2 <| String.fromInt end.x
-  , y2 <| String.fromInt end.y
-  , stroke color
-  , strokeWidth <| String.fromInt width
-  ] []
-
-grid : Int -> Int -> List (Svg msg)
-grid num_rows num_cols =
-  let
-    left = List.map   (\y -> Coord 0 y)                                      <| List.range 0 (num_rows - 1)
-    right = List.map  (\y -> Coord (num_cols - 1) y)                         <| List.range 0 (num_rows - 1)
-    top = List.map    (\x -> Coord x (end_zone_length - 1))                  <| List.range 0 (num_cols - 1)
-    bottom = List.map (\x -> Coord x (num_rows - 1 - (end_zone_length - 1))) <| List.range 0 (num_cols - 1)
-    gridLine start end = lineSegment (unSnap start) (unSnap end) "black" 1
-    vertical_lines   = List.map2 gridLine top bottom
-    horizontal_lines = List.map2 gridLine left right
-  in
-    vertical_lines ++ horizontal_lines
-
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   (model, Cmd.none)
 
 init : () -> (Model, Cmd Msg)
 init _ =
-  (Playing <| Game (Ball (Coord 1 1) [] Nothing) [Coord 5 2, Coord 10 10] X, Cmd.none)
+  (Playing <| Game (Ball (Coord 7 9) [] Nothing) [Coord 5 2, Coord 10 10] X, Cmd.none)
 
 view : Model -> Html Msg
 view model =
   case model of
     Playing game ->
-      draw game
-
-draw game =
-  svg [width <| String.fromInt game_width, height <| String.fromInt game_height]
-  ([background] ++ endZones ++ (grid n_rows n_cols) ++ stones game.stones)
+      let
+        stones = game.stones
+        ball_position = getBallPoint game.ball
+        ball_history = ball_position::(List.map Draw.unSnap game.ball.history)
+        dragging = game.ball.point /= Nothing
+      in
+        Draw.draw stones ball_history ball_position dragging
 
 -- drawCircle : Point -> Float -> String -> Float -> Svg msg
 -- drawCircle point radius c o = circle
@@ -250,7 +154,7 @@ subscriptions model =
 decodeX  = (Json.Decode.field "pageX" Json.Decode.int)
 decodeY  = (Json.Decode.field "pageY" Json.Decode.int)
 decodeXY = (Json.Decode.map2 Point decodeX decodeY)
-toGrid x y = snap <| Point x y
+toGrid x y = Draw.snap <| Point x y
 decodeGridXY = (Json.Decode.map2 toGrid decodeX decodeY)
 
 main =
@@ -312,26 +216,6 @@ main =
 --   = MouseDown Point
 --   | MouseMove Point
 --   | MouseUp   Point
---
--- main =
---     Browser.element
---     { init = init
---     , update = update
---     , subscriptions = subscriptions
---     , view = view
---     }
---
--- init : () -> (Model, Cmd Msg)
--- init _ =
---   let
---     ball_pos = Point (margin + 7 * grid_size) (margin + 9 * grid_size)
---     game = Game (Ball ball_pos []) [] X
---     mouse = Up
---   in
---     (Playing game mouse, Cmd.none)
---
---
---
 --
 -- -- make sure that mouse_down location = mouse_up location when trying to place people
 -- -- fix path of ball drawing
@@ -482,147 +366,3 @@ main =
 --       [] -> [] -- this case never occurs
 --       [_] -> []
 --       (_::tail) -> List.concat (List.map2 pointsBetween ball_path tail)
-
--- subscriptions : Model -> Sub Msg
--- subscriptions model =
---   case model of
---     Playing _ mouse ->
---       case mouse of
---         Up ->
---           Sub.batch
---           [ Browser.Events.onMouseDown (Json.Decode.map MouseDown decodeGridXY)
---           , Browser.Events.onMouseUp   (Json.Decode.map MouseUp   decodeGridXY)
---           ]
---         _ ->
---           Sub.batch
---           [ Browser.Events.onMouseMove (Json.Decode.map MouseMove decodeXY)
---           , Browser.Events.onMouseUp   (Json.Decode.map MouseUp   decodeGridXY)
---           ]
---
--- decodeX  = (Json.Decode.field "pageX" Json.Decode.int)
--- decodeY  = (Json.Decode.field "pageY" Json.Decode.int)
--- decodeXY = (Json.Decode.map2 Point decodeX decodeY)
--- toGrid x y = snapToGrid <| Point x y
--- decodeGridXY = (Json.Decode.map2 toGrid decodeX decodeY)
---
--- view : Model -> Html Msg
--- view model =
---   case model of
---     Playing game mouse -> drawGame game mouse
---
--- drawGame : Game -> Mouse -> Html Msg
--- drawGame game mouse =
---   svg [width <| String.fromInt game_width, height <| String.fromInt game_height]
---   ([drawBackground] ++ drawGrid ++ drawEndZones ++ drawPeople game ++ (drawBall game.ball mouse))
---
--- rectangle : Int -> Int -> Int -> Int -> String -> Svg msg
--- rectangle left_x top_y w h color = rect
---   [ x      <| String.fromInt left_x
---   , y      <| String.fromInt top_y
---   , width  <| String.fromInt w
---   , height <| String.fromInt h
---   , fill color
---   ] []
---
--- drawBackground : Svg msg
--- drawBackground = rectangle 0 0 game_width game_height "BurlyWood"
---
--- horizontal : Int -> String -> Int -> Svg msg
--- horizontal y color width = line
---   [ x1 <| String.fromInt <| grid_size * (0  + 1)
---   , y1 <| String.fromInt <| grid_size * (y  + 1)
---   , x2 <| String.fromInt <| grid_size * (14 + 1)
---   , y2 <| String.fromInt <| grid_size * (y  + 1)
---   , stroke color
---   , strokeWidth <| String.fromInt width
---   ] []
---
--- vertical : Int -> String -> Int -> Svg msg
--- vertical x color width = line
---   [ x1 <| String.fromInt <| grid_size * (x  + 1)
---   , y1 <| String.fromInt <| grid_size * (1  + 1)
---   , x2 <| String.fromInt <| grid_size * (x  + 1)
---   , y2 <| String.fromInt <| grid_size * (19 + 1)
---   , stroke color
---   , strokeWidth <| String.fromInt width
---   ] []
---
--- drawCircle : Point -> Float -> String -> Float -> Svg msg
--- drawCircle point radius c o = circle
---   [ cx <| String.fromInt point.x
---   , cy <| String.fromInt point.y
---   , r  <| String.fromFloat radius
---   , fill c
---   , opacity <| String.fromFloat o
---   ] []
---
--- drawGrid : List (Svg msg)
--- drawGrid = (List.map (\x -> vertical x "black" 1) (List.range 0 (num_cols-1))) ++ (List.map (\y -> horizontal y "black" 1) (List.range 1 (num_rows-1+1)))
---
--- drawEndZones : List (Svg msg)
--- -- drawEndZones = [horizontal 0 "DarkBlue" 5, horizontal 20 "DarkBlue" 5, horizontal 1 "DarkBlue" 5, horizontal 19 "DarkBlue" 5]
--- drawEndZones =
---   let
---     fill_color = "none"
---     stroke_color = "blue"
---     dash_rule = "10,10"
---   in
---     [ rect
---       [ x      <| String.fromInt (round (margin / 2))
---       , y      <| String.fromInt (round (margin / 2))
---       , width  <| String.fromInt (game_width - grid_size)
---       , height <| String.fromInt (2 * grid_size)
---       , fill fill_color
---       , stroke stroke_color
---       , strokeDasharray dash_rule
---       , strokeWidth "2"] []
---     , rect
---     [ x      <| String.fromInt (round (margin / 2))
---     , y      <| String.fromInt (game_height - round (margin / 2) - 2 * grid_size)
---     , width  <| String.fromInt (game_width - grid_size)
---     , height <| String.fromInt (2 * grid_size)
---     , fill fill_color
---     , stroke stroke_color
---     , strokeDasharray dash_rule
---     , strokeWidth "2"] []
---     , horizontal 0 "black" 1
---     , horizontal 20 "black" 1
---     ]
---
--- drawPath : Ball -> Maybe Point -> String -> Int -> Svg msg
--- drawPath ball mouse_pos color width =
---   case mouse_pos of
---     Nothing ->
---       let
---         toStr p = String.fromInt p.x ++ "," ++ String.fromInt p.y
---         str_points = String.join " " <| List.map toStr (ball.position::ball.history)
---       in
---         polyline [points str_points, stroke color, strokeWidth (String.fromInt width), fill "none", strokeLinecap "round", strokeLinejoin "round"] []
---     Just pos ->
---       let
---         toStr p = String.fromInt p.x ++ "," ++ String.fromInt p.y
---         str_points = String.join " " <| List.map toStr (pos::ball.position::ball.history)
---       in
---         polyline [points str_points, stroke color, strokeWidth (String.fromInt width), fill "none", strokeLinecap "round", strokeLinejoin "round"] []
---
--- drawBall : Ball -> Mouse -> List (Svg msg)
--- drawBall ball mouse =
---   let
---     line_color = "red"
---     line_width = 10
---     ball_color = "white"
---     opacity    = 1
---   in
---     case mouse of
---       Dragging start current ->
---         [drawPath ball (Just current) line_color line_width, drawCircle current (0.65 * grid_size) ball_color opacity]
---       _ ->
---         [drawPath ball Nothing line_color line_width, drawCircle ball.position (0.45 * grid_size) ball_color opacity]
---
--- drawPeople : Game -> List (Svg msg)
--- drawPeople game =
---   let
---     people = game.people
---     opacity person = if List.member person (jumpedList game.ball) then 0.5 else 1
---   in
---   List.map (\person -> drawCircle person (0.45 * grid_size) "black" (opacity person)) people
