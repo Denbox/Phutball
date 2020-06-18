@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>V2</title>
+  <title>V3</title>
   <style>body { padding: 0; margin: 0; }</style>
 </head>
 
@@ -5158,71 +5158,64 @@ var $elm$core$Task$perform = F2(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
 var $elm$browser$Browser$element = _Browser_element;
-var $author$project$V2$Ball = F2(
-	function (position, history) {
-		return {history: history, position: position};
+var $author$project$V3$Ball = F3(
+	function (coord, history, point) {
+		return {coord: coord, history: history, point: point};
 	});
-var $author$project$V2$Game = F3(
-	function (ball, people, turn) {
-		return {ball: ball, people: people, turn: turn};
-	});
-var $author$project$V2$Playing = F2(
-	function (a, b) {
-		return {$: 'Playing', a: a, b: b};
-	});
-var $author$project$V2$Point = F2(
+var $author$project$V3$Coord = F2(
 	function (x, y) {
 		return {x: x, y: y};
 	});
-var $author$project$V2$Up = {$: 'Up'};
-var $author$project$V2$X = {$: 'X'};
-var $author$project$V2$grid_size = 35;
-var $author$project$V2$margin = $author$project$V2$grid_size;
+var $author$project$V3$Game = F3(
+	function (ball, stones, turn) {
+		return {ball: ball, stones: stones, turn: turn};
+	});
+var $author$project$V3$Playing = function (a) {
+	return {$: 'Playing', a: a};
+};
+var $author$project$V3$X = {$: 'X'};
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
-var $author$project$V2$init = function (_v0) {
-	var mouse = $author$project$V2$Up;
-	var ball_pos = A2($author$project$V2$Point, $author$project$V2$margin + (7 * $author$project$V2$grid_size), $author$project$V2$margin + (9 * $author$project$V2$grid_size));
-	var game = A3(
-		$author$project$V2$Game,
-		A2($author$project$V2$Ball, ball_pos, _List_Nil),
-		_List_Nil,
-		$author$project$V2$X);
+var $author$project$V3$init = function (_v0) {
 	return _Utils_Tuple2(
-		A2($author$project$V2$Playing, game, mouse),
+		$author$project$V3$Playing(
+			A3(
+				$author$project$V3$Game,
+				A3(
+					$author$project$V3$Ball,
+					A2($author$project$V3$Coord, 1, 1),
+					_List_Nil,
+					$elm$core$Maybe$Nothing),
+				_List_Nil,
+				$author$project$V3$X)),
 		$elm$core$Platform$Cmd$none);
 };
-var $author$project$V2$MouseDown = function (a) {
+var $author$project$V3$MouseDown = function (a) {
 	return {$: 'MouseDown', a: a};
 };
-var $author$project$V2$MouseMove = function (a) {
-	return {$: 'MouseMove', a: a};
-};
-var $author$project$V2$MouseUp = function (a) {
+var $author$project$V3$MouseUp = function (a) {
 	return {$: 'MouseUp', a: a};
 };
 var $elm$core$Platform$Sub$batch = _Platform_batch;
 var $elm$json$Json$Decode$field = _Json_decodeField;
 var $elm$json$Json$Decode$int = _Json_decodeInt;
-var $author$project$V2$decodeX = A2($elm$json$Json$Decode$field, 'pageX', $elm$json$Json$Decode$int);
-var $author$project$V2$decodeY = A2($elm$json$Json$Decode$field, 'pageY', $elm$json$Json$Decode$int);
-var $elm$core$Basics$round = _Basics_round;
-var $author$project$V2$snapToGrid = function (p) {
-	var snap = function (x) {
-		return ($elm$core$Basics$round((x - $author$project$V2$margin) / $author$project$V2$grid_size) * $author$project$V2$grid_size) + $author$project$V2$margin;
-	};
-	return A2(
-		$author$project$V2$Point,
-		snap(p.x),
-		snap(p.y));
-};
-var $author$project$V2$toGrid = F2(
+var $author$project$V3$decodeX = A2($elm$json$Json$Decode$field, 'pageX', $elm$json$Json$Decode$int);
+var $author$project$V3$decodeY = A2($elm$json$Json$Decode$field, 'pageY', $elm$json$Json$Decode$int);
+var $author$project$V3$Point = F2(
 	function (x, y) {
-		return $author$project$V2$snapToGrid(
-			A2($author$project$V2$Point, x, y));
+		return {x: x, y: y};
 	});
-var $author$project$V2$decodeGridXY = A3($elm$json$Json$Decode$map2, $author$project$V2$toGrid, $author$project$V2$decodeX, $author$project$V2$decodeY);
-var $author$project$V2$decodeXY = A3($elm$json$Json$Decode$map2, $author$project$V2$Point, $author$project$V2$decodeX, $author$project$V2$decodeY);
+var $author$project$V3$unit = 35;
+var $author$project$V3$margin = $author$project$V3$unit;
+var $author$project$V3$snap = function (p) {
+	return A2($author$project$V3$Coord, ((p.x / $author$project$V3$unit) | 0) - $author$project$V3$margin, ((p.y / $author$project$V3$unit) | 0) - $author$project$V3$margin);
+};
+var $author$project$V3$toGrid = F2(
+	function (x, y) {
+		return $author$project$V3$snap(
+			A2($author$project$V3$Point, x, y));
+	});
+var $author$project$V3$decodeGridXY = A3($elm$json$Json$Decode$map2, $author$project$V3$toGrid, $author$project$V3$decodeX, $author$project$V3$decodeY);
 var $elm$browser$Browser$Events$Document = {$: 'Document'};
 var $elm$browser$Browser$Events$MySub = F3(
 	function (a, b, c) {
@@ -5624,668 +5617,185 @@ var $elm$browser$Browser$Events$on = F3(
 			A3($elm$browser$Browser$Events$MySub, node, name, decoder));
 	});
 var $elm$browser$Browser$Events$onMouseDown = A2($elm$browser$Browser$Events$on, $elm$browser$Browser$Events$Document, 'mousedown');
-var $elm$browser$Browser$Events$onMouseMove = A2($elm$browser$Browser$Events$on, $elm$browser$Browser$Events$Document, 'mousemove');
 var $elm$browser$Browser$Events$onMouseUp = A2($elm$browser$Browser$Events$on, $elm$browser$Browser$Events$Document, 'mouseup');
-var $author$project$V2$subscriptions = function (model) {
-	var mouse = model.b;
-	if (mouse.$ === 'Up') {
-		return $elm$core$Platform$Sub$batch(
-			_List_fromArray(
-				[
-					$elm$browser$Browser$Events$onMouseDown(
-					A2($elm$json$Json$Decode$map, $author$project$V2$MouseDown, $author$project$V2$decodeGridXY)),
-					$elm$browser$Browser$Events$onMouseUp(
-					A2($elm$json$Json$Decode$map, $author$project$V2$MouseUp, $author$project$V2$decodeGridXY))
-				]));
-	} else {
-		return $elm$core$Platform$Sub$batch(
-			_List_fromArray(
-				[
-					$elm$browser$Browser$Events$onMouseMove(
-					A2($elm$json$Json$Decode$map, $author$project$V2$MouseMove, $author$project$V2$decodeXY)),
-					$elm$browser$Browser$Events$onMouseUp(
-					A2($elm$json$Json$Decode$map, $author$project$V2$MouseUp, $author$project$V2$decodeGridXY))
-				]));
-	}
+var $author$project$V3$subscriptions = function (model) {
+	var game = model.a;
+	return $elm$core$Platform$Sub$batch(
+		_List_fromArray(
+			[
+				$elm$browser$Browser$Events$onMouseDown(
+				A2($elm$json$Json$Decode$map, $author$project$V3$MouseDown, $author$project$V3$decodeGridXY)),
+				$elm$browser$Browser$Events$onMouseUp(
+				A2($elm$json$Json$Decode$map, $author$project$V3$MouseUp, $author$project$V3$decodeGridXY))
+			]));
 };
-var $author$project$V2$Dragging = F2(
-	function (a, b) {
-		return {$: 'Dragging', a: a, b: b};
-	});
-var $author$project$V2$Pressing = F2(
-	function (a, b) {
-		return {$: 'Pressing', a: a, b: b};
-	});
-var $elm$core$List$filter = F2(
-	function (isGood, list) {
-		return A3(
-			$elm$core$List$foldr,
-			F2(
-				function (x, xs) {
-					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
-				}),
-			_List_Nil,
-			list);
-	});
-var $elm$core$List$append = F2(
-	function (xs, ys) {
-		if (!ys.b) {
-			return xs;
-		} else {
-			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
-		}
-	});
-var $elm$core$List$concat = function (lists) {
-	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
-};
-var $elm$core$Basics$negate = function (n) {
-	return -n;
-};
-var $elm$core$Basics$abs = function (n) {
-	return (n < 0) ? (-n) : n;
-};
-var $author$project$V2$pAdd = F2(
-	function (a, b) {
-		return A2($author$project$V2$Point, a.x + b.x, a.y + b.y);
-	});
-var $author$project$V2$psMul = F2(
-	function (p, a) {
-		return A2($author$project$V2$Point, p.x * a, p.y * a);
-	});
-var $elm$core$Basics$neq = _Utils_notEqual;
-var $author$project$V2$pSub = F2(
-	function (a, b) {
-		return A2($author$project$V2$Point, a.x - b.x, a.y - b.y);
-	});
-var $author$project$V2$validDragDirection = F2(
-	function (start, end) {
-		var unique = !_Utils_eq(start, end);
-		var diff = A2($author$project$V2$pSub, end, start);
-		var horizontal_or_vertical = (!diff.x) || (!diff.y);
-		var diagonal = _Utils_eq(
-			$elm$core$Basics$abs(diff.x),
-			$elm$core$Basics$abs(diff.y));
-		return unique && (horizontal_or_vertical || diagonal);
-	});
-var $author$project$V2$pointsBetween = F2(
-	function (start, end) {
-		if (A2($author$project$V2$validDragDirection, start, end)) {
-			var max_diff = A2(
-				$elm$core$Basics$max,
-				$elm$core$Basics$abs(end.x - start.x),
-				$elm$core$Basics$abs(end.y - start.y));
-			var num_steps = (max_diff / $author$project$V2$grid_size) | 0;
-			var shift = A2($author$project$V2$Point, ((end.x - start.x) / num_steps) | 0, ((end.y - start.y) / num_steps) | 0);
-			return A2(
-				$elm$core$List$map,
-				function (i) {
-					return A2(
-						$author$project$V2$pAdd,
-						start,
-						A2($author$project$V2$psMul, shift, i));
-				},
-				A2($elm$core$List$range, 1, num_steps - 1));
-		} else {
-			return _List_Nil;
-		}
-	});
-var $author$project$V2$jumpedList = function (ball) {
-	var ball_path = A2($elm$core$List$cons, ball.position, ball.history);
-	if (!ball_path.b) {
-		return _List_Nil;
-	} else {
-		if (!ball_path.b.b) {
-			return _List_Nil;
-		} else {
-			var tail = ball_path.b;
-			return $elm$core$List$concat(
-				A3($elm$core$List$map2, $author$project$V2$pointsBetween, ball_path, tail));
-		}
-	}
-};
-var $elm$core$List$any = F2(
-	function (isOkay, list) {
-		any:
-		while (true) {
-			if (!list.b) {
-				return false;
-			} else {
-				var x = list.a;
-				var xs = list.b;
-				if (isOkay(x)) {
-					return true;
-				} else {
-					var $temp$isOkay = isOkay,
-						$temp$list = xs;
-					isOkay = $temp$isOkay;
-					list = $temp$list;
-					continue any;
-				}
-			}
-		}
-	});
-var $elm$core$List$member = F2(
-	function (x, xs) {
-		return A2(
-			$elm$core$List$any,
-			function (a) {
-				return _Utils_eq(a, x);
-			},
-			xs);
-	});
-var $author$project$V2$O = {$: 'O'};
-var $author$project$V2$nextTurn = function (turn) {
-	if (turn.$ === 'X') {
-		return $author$project$V2$O;
-	} else {
-		return $author$project$V2$X;
-	}
-};
-var $elm$core$Basics$not = _Basics_not;
-var $author$project$V2$finishBallMove = function (game) {
-	var jumped_people = $author$project$V2$jumpedList(game.ball);
-	var not_jumped = function (person) {
-		return !A2($elm$core$List$member, person, jumped_people);
-	};
-	var remaining_people = A2($elm$core$List$filter, not_jumped, game.people);
-	var ball = A2($author$project$V2$Ball, game.ball.position, _List_Nil);
-	return _Utils_Tuple2(
-		A2(
-			$author$project$V2$Playing,
-			A3(
-				$author$project$V2$Game,
-				ball,
-				remaining_people,
-				$author$project$V2$nextTurn(game.turn)),
-			$author$project$V2$Up),
-		$elm$core$Platform$Cmd$none);
-};
-var $author$project$V2$moveBall = F3(
-	function (game, start, end) {
-		return _Utils_Tuple2(
-			A2(
-				$author$project$V2$Playing,
-				_Utils_update(
-					game,
-					{
-						ball: A2(
-							$author$project$V2$Ball,
-							end,
-							A2($elm$core$List$cons, start, game.ball.history))
-					}),
-				$author$project$V2$Up),
-			$elm$core$Platform$Cmd$none);
-	});
-var $author$project$V2$end_rows = 2;
-var $author$project$V2$num_rows = 19;
-var $author$project$V2$game_height = ($author$project$V2$grid_size * (($author$project$V2$num_rows + $author$project$V2$end_rows) - 1)) + (2 * $author$project$V2$margin);
-var $author$project$V2$num_cols = 15;
-var $author$project$V2$game_width = ($author$project$V2$grid_size * ($author$project$V2$num_cols - 1)) + (2 * $author$project$V2$margin);
-var $elm$core$Basics$ge = _Utils_ge;
-var $author$project$V2$inBoundsPerson = function (p) {
-	return (_Utils_cmp(p.x, $author$project$V2$margin) > -1) && ((_Utils_cmp(p.x, $author$project$V2$game_width - $author$project$V2$margin) < 1) && ((_Utils_cmp(p.y, $author$project$V2$margin + $author$project$V2$grid_size) > -1) && (_Utils_cmp(p.y, ($author$project$V2$game_height - $author$project$V2$margin) - $author$project$V2$grid_size) < 1)));
-};
-var $author$project$V2$placePerson = F3(
-	function (game, start, end) {
-		var updated_people = A2($elm$core$List$cons, end, game.people);
-		var new_person = (!A2($elm$core$List$member, end, game.people)) && (!_Utils_eq(end, game.ball.position));
-		return (_Utils_eq(start, end) && ($author$project$V2$inBoundsPerson(end) && new_person)) ? _Utils_Tuple2(
-			A2(
-				$author$project$V2$Playing,
-				_Utils_update(
-					game,
-					{
-						people: updated_people,
-						turn: $author$project$V2$nextTurn(game.turn)
-					}),
-				$author$project$V2$Up),
-			$elm$core$Platform$Cmd$none) : _Utils_Tuple2(
-			A2($author$project$V2$Playing, game, $author$project$V2$Up),
-			$elm$core$Platform$Cmd$none);
-	});
-var $author$project$V2$undoBallMove = function (game) {
-	var _v0 = game.ball.history;
-	if (!_v0.b) {
-		return _Utils_Tuple2(
-			A2($author$project$V2$Playing, game, $author$project$V2$Up),
-			$elm$core$Platform$Cmd$none);
-	} else {
-		var x = _v0.a;
-		var xs = _v0.b;
-		return _Utils_Tuple2(
-			A2(
-				$author$project$V2$Playing,
-				_Utils_update(
-					game,
-					{
-						ball: A2($author$project$V2$Ball, x, xs)
-					}),
-				$author$project$V2$Up),
-			$elm$core$Platform$Cmd$none);
-	}
-};
-var $elm$core$Basics$composeL = F3(
-	function (g, f, x) {
-		return g(
-			f(x));
-	});
-var $elm$core$List$all = F2(
-	function (isOkay, list) {
-		return !A2(
-			$elm$core$List$any,
-			A2($elm$core$Basics$composeL, $elm$core$Basics$not, isOkay),
-			list);
-	});
-var $author$project$V2$allPeople = F2(
-	function (points, people) {
-		var at_least_one_point = $elm$core$List$length(points) > 0;
-		var all_points_are_people = A2(
-			$elm$core$List$all,
-			function (x) {
-				return A2($elm$core$List$member, x, people);
-			},
-			points);
-		return all_points_are_people && at_least_one_point;
-	});
-var $author$project$V2$inBoundsBall = function (p) {
-	return (_Utils_cmp(p.x, $author$project$V2$margin) > -1) && ((_Utils_cmp(p.x, $author$project$V2$game_width - $author$project$V2$margin) < 1) && ((_Utils_cmp(p.y, $author$project$V2$margin) > -1) && (_Utils_cmp(p.y, $author$project$V2$game_height - $author$project$V2$margin) < 1)));
-};
-var $author$project$V2$validDrag = F3(
-	function (game, start, end) {
-		var valid_start = _Utils_eq(game.ball.position, start);
-		var valid_direction = A2($author$project$V2$validDragDirection, start, end);
-		var points_jumped_now = A2($author$project$V2$pointsBetween, start, end);
-		var points_jumped_all = $author$project$V2$jumpedList(game.ball);
-		var valid_end = $author$project$V2$inBoundsBall(end) && ((!A2($elm$core$List$member, end, game.people)) || A2($elm$core$List$member, end, points_jumped_all));
-		var no_double_jumped_people = A2(
-			$elm$core$List$all,
-			function (point) {
-				return !A2($elm$core$List$member, point, points_jumped_all);
-			},
-			points_jumped_now);
-		var all_people_between = A2($author$project$V2$allPeople, points_jumped_now, game.people);
-		return valid_start && (valid_end && (valid_direction && (all_people_between && no_double_jumped_people)));
-	});
-var $author$project$V2$validUndrag = F3(
-	function (game, start, end) {
-		var _v0 = game.ball.history;
-		if (!_v0.b) {
-			return false;
-		} else {
-			var x = _v0.a;
-			var xs = _v0.b;
-			return _Utils_eq(start, game.ball.position) && _Utils_eq(end, x);
-		}
-	});
-var $author$project$V2$update = F2(
+var $author$project$V3$update = F2(
 	function (msg, model) {
-		var game = model.a;
-		var mouse = model.b;
-		switch (msg.$) {
-			case 'MouseDown':
-				var point = msg.a;
-				var start = $author$project$V2$snapToGrid(point);
-				var current = point;
-				return _Utils_eq(
-					$author$project$V2$snapToGrid(point),
-					game.ball.position) ? _Utils_Tuple2(
-					A2(
-						$author$project$V2$Playing,
-						game,
-						A2($author$project$V2$Dragging, start, current)),
-					$elm$core$Platform$Cmd$none) : _Utils_Tuple2(
-					A2(
-						$author$project$V2$Playing,
-						game,
-						A2($author$project$V2$Pressing, start, current)),
-					$elm$core$Platform$Cmd$none);
-			case 'MouseMove':
-				var current = msg.a;
-				switch (mouse.$) {
-					case 'Up':
-						return _Utils_Tuple2(
-							A2($author$project$V2$Playing, game, mouse),
-							$elm$core$Platform$Cmd$none);
-					case 'Dragging':
-						var start = mouse.a;
-						return _Utils_Tuple2(
-							A2(
-								$author$project$V2$Playing,
-								game,
-								A2($author$project$V2$Dragging, start, current)),
-							$elm$core$Platform$Cmd$none);
-					default:
-						var start = mouse.a;
-						return _Utils_Tuple2(
-							A2(
-								$author$project$V2$Playing,
-								game,
-								A2($author$project$V2$Pressing, start, current)),
-							$elm$core$Platform$Cmd$none);
-				}
-			default:
-				var end = msg.a;
-				var end_pos = $author$project$V2$snapToGrid(end);
-				switch (mouse.$) {
-					case 'Up':
-						return _Utils_Tuple2(
-							A2($author$project$V2$Playing, game, mouse),
-							$elm$core$Platform$Cmd$none);
-					case 'Dragging':
-						var start_pos = mouse.a;
-						return (_Utils_eq(start_pos, end_pos) && ($elm$core$List$length(game.ball.history) > 0)) ? $author$project$V2$finishBallMove(game) : (A3($author$project$V2$validDrag, game, start_pos, end_pos) ? A3($author$project$V2$moveBall, game, start_pos, end_pos) : (A3($author$project$V2$validUndrag, game, start_pos, end_pos) ? $author$project$V2$undoBallMove(game) : _Utils_Tuple2(
-							A2($author$project$V2$Playing, game, $author$project$V2$Up),
-							$elm$core$Platform$Cmd$none)));
-					default:
-						var start_pos = mouse.a;
-						return ($elm$core$List$length(game.ball.history) > 0) ? _Utils_Tuple2(
-							A2($author$project$V2$Playing, game, $author$project$V2$Up),
-							$elm$core$Platform$Cmd$none) : A3($author$project$V2$placePerson, game, start_pos, end_pos);
-				}
-		}
+		return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 	});
 var $elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
+var $author$project$V3$n_rows = 19;
+var $author$project$V3$game_height = ($author$project$V3$margin * 2) + ($author$project$V3$unit * ($author$project$V3$n_rows - 1));
+var $author$project$V3$n_cols = 15;
+var $author$project$V3$game_width = ($author$project$V3$margin * 2) + ($author$project$V3$unit * ($author$project$V3$n_cols - 1));
 var $elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
 var $elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
 var $elm$svg$Svg$rect = $elm$svg$Svg$trustedNode('rect');
 var $elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
 var $elm$svg$Svg$Attributes$x = _VirtualDom_attribute('x');
 var $elm$svg$Svg$Attributes$y = _VirtualDom_attribute('y');
-var $author$project$V2$rectangle = F5(
-	function (left_x, top_y, w, h, color) {
-		return A2(
-			$elm$svg$Svg$rect,
-			_List_fromArray(
-				[
-					$elm$svg$Svg$Attributes$x(
-					$elm$core$String$fromInt(left_x)),
-					$elm$svg$Svg$Attributes$y(
-					$elm$core$String$fromInt(top_y)),
-					$elm$svg$Svg$Attributes$width(
-					$elm$core$String$fromInt(w)),
-					$elm$svg$Svg$Attributes$height(
-					$elm$core$String$fromInt(h)),
-					$elm$svg$Svg$Attributes$fill(color)
-				]),
-			_List_Nil);
-	});
-var $author$project$V2$drawBackground = A5($author$project$V2$rectangle, 0, 0, $author$project$V2$game_width, $author$project$V2$game_height, 'BurlyWood');
-var $elm$svg$Svg$circle = $elm$svg$Svg$trustedNode('circle');
-var $elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
-var $elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
-var $elm$core$String$fromFloat = _String_fromNumber;
-var $elm$svg$Svg$Attributes$opacity = _VirtualDom_attribute('opacity');
-var $elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
-var $author$project$V2$drawCircle = F4(
-	function (point, radius, c, o) {
-		return A2(
-			$elm$svg$Svg$circle,
-			_List_fromArray(
-				[
-					$elm$svg$Svg$Attributes$cx(
-					$elm$core$String$fromInt(point.x)),
-					$elm$svg$Svg$Attributes$cy(
-					$elm$core$String$fromInt(point.y)),
-					$elm$svg$Svg$Attributes$r(
-					$elm$core$String$fromFloat(radius)),
-					$elm$svg$Svg$Attributes$fill(c),
-					$elm$svg$Svg$Attributes$opacity(
-					$elm$core$String$fromFloat(o))
-				]),
-			_List_Nil);
-	});
-var $elm$svg$Svg$Attributes$points = _VirtualDom_attribute('points');
-var $elm$svg$Svg$polyline = $elm$svg$Svg$trustedNode('polyline');
+var $author$project$V3$background = A2(
+	$elm$svg$Svg$rect,
+	_List_fromArray(
+		[
+			$elm$svg$Svg$Attributes$x('0'),
+			$elm$svg$Svg$Attributes$y('0'),
+			$elm$svg$Svg$Attributes$width(
+			$elm$core$String$fromInt($author$project$V3$game_width)),
+			$elm$svg$Svg$Attributes$height(
+			$elm$core$String$fromInt($author$project$V3$game_height)),
+			$elm$svg$Svg$Attributes$fill('BurlyWood')
+		]),
+	_List_Nil);
+var $author$project$V3$end_zone_length = 2;
 var $elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
-var $elm$svg$Svg$Attributes$strokeLinecap = _VirtualDom_attribute('stroke-linecap');
-var $elm$svg$Svg$Attributes$strokeLinejoin = _VirtualDom_attribute('stroke-linejoin');
+var $elm$svg$Svg$Attributes$strokeDasharray = _VirtualDom_attribute('stroke-dasharray');
 var $elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
-var $author$project$V2$drawPath = F4(
-	function (ball, mouse_pos, color, width) {
-		if (mouse_pos.$ === 'Nothing') {
-			var toStr = function (p) {
-				return $elm$core$String$fromInt(p.x) + (',' + $elm$core$String$fromInt(p.y));
-			};
-			var str_points = A2(
-				$elm$core$String$join,
-				' ',
-				A2(
-					$elm$core$List$map,
-					toStr,
-					A2($elm$core$List$cons, ball.position, ball.history)));
-			return A2(
-				$elm$svg$Svg$polyline,
-				_List_fromArray(
-					[
-						$elm$svg$Svg$Attributes$points(str_points),
-						$elm$svg$Svg$Attributes$stroke(color),
-						$elm$svg$Svg$Attributes$strokeWidth(
-						$elm$core$String$fromInt(width)),
-						$elm$svg$Svg$Attributes$fill('none'),
-						$elm$svg$Svg$Attributes$strokeLinecap('round'),
-						$elm$svg$Svg$Attributes$strokeLinejoin('round')
-					]),
-				_List_Nil);
-		} else {
-			var pos = mouse_pos.a;
-			var toStr = function (p) {
-				return $elm$core$String$fromInt(p.x) + (',' + $elm$core$String$fromInt(p.y));
-			};
-			var str_points = A2(
-				$elm$core$String$join,
-				' ',
-				A2(
-					$elm$core$List$map,
-					toStr,
-					A2(
-						$elm$core$List$cons,
-						pos,
-						A2($elm$core$List$cons, ball.position, ball.history))));
-			return A2(
-				$elm$svg$Svg$polyline,
-				_List_fromArray(
-					[
-						$elm$svg$Svg$Attributes$points(str_points),
-						$elm$svg$Svg$Attributes$stroke(color),
-						$elm$svg$Svg$Attributes$strokeWidth(
-						$elm$core$String$fromInt(width)),
-						$elm$svg$Svg$Attributes$fill('none'),
-						$elm$svg$Svg$Attributes$strokeLinecap('round'),
-						$elm$svg$Svg$Attributes$strokeLinejoin('round')
-					]),
-				_List_Nil);
-		}
-	});
-var $author$project$V2$drawBall = F2(
-	function (ball, mouse) {
-		var opacity = 1;
-		var line_width = 10;
-		var line_color = 'red';
-		var ball_color = 'white';
-		if (mouse.$ === 'Dragging') {
-			var start = mouse.a;
-			var current = mouse.b;
-			return _List_fromArray(
-				[
-					A4(
-					$author$project$V2$drawPath,
-					ball,
-					$elm$core$Maybe$Just(current),
-					line_color,
-					line_width),
-					A4($author$project$V2$drawCircle, current, 0.65 * $author$project$V2$grid_size, ball_color, opacity)
-				]);
-		} else {
-			return _List_fromArray(
-				[
-					A4($author$project$V2$drawPath, ball, $elm$core$Maybe$Nothing, line_color, line_width),
-					A4($author$project$V2$drawCircle, ball.position, 0.45 * $author$project$V2$grid_size, ball_color, opacity)
-				]);
-		}
-	});
+var $author$project$V3$endZones = function () {
+	var top_zone = A2(
+		$elm$svg$Svg$rect,
+		_List_fromArray(
+			[
+				$elm$svg$Svg$Attributes$x(
+				$elm$core$String$fromInt(($author$project$V3$margin / 2) | 0)),
+				$elm$svg$Svg$Attributes$y(
+				$elm$core$String$fromInt(($author$project$V3$margin / 2) | 0)),
+				$elm$svg$Svg$Attributes$width(
+				$elm$core$String$fromInt($author$project$V3$unit * $author$project$V3$n_cols)),
+				$elm$svg$Svg$Attributes$height(
+				$elm$core$String$fromInt($author$project$V3$unit * $author$project$V3$end_zone_length)),
+				$elm$svg$Svg$Attributes$fill('none'),
+				$elm$svg$Svg$Attributes$stroke('blue'),
+				$elm$svg$Svg$Attributes$strokeDasharray('10,10'),
+				$elm$svg$Svg$Attributes$strokeWidth('2')
+			]),
+		_List_Nil);
+	var bottom_zone = A2(
+		$elm$svg$Svg$rect,
+		_List_fromArray(
+			[
+				$elm$svg$Svg$Attributes$x(
+				$elm$core$String$fromInt(($author$project$V3$margin / 2) | 0)),
+				$elm$svg$Svg$Attributes$y(
+				$elm$core$String$fromInt(($author$project$V3$game_height - ($author$project$V3$unit * $author$project$V3$end_zone_length)) - (($author$project$V3$margin / 2) | 0))),
+				$elm$svg$Svg$Attributes$width(
+				$elm$core$String$fromInt($author$project$V3$unit * $author$project$V3$n_cols)),
+				$elm$svg$Svg$Attributes$height(
+				$elm$core$String$fromInt($author$project$V3$unit * $author$project$V3$end_zone_length)),
+				$elm$svg$Svg$Attributes$fill('none'),
+				$elm$svg$Svg$Attributes$stroke('blue'),
+				$elm$svg$Svg$Attributes$strokeDasharray('10,10'),
+				$elm$svg$Svg$Attributes$strokeWidth('2')
+			]),
+		_List_Nil);
+	return _List_fromArray(
+		[top_zone, bottom_zone]);
+}();
 var $elm$svg$Svg$line = $elm$svg$Svg$trustedNode('line');
 var $elm$svg$Svg$Attributes$x1 = _VirtualDom_attribute('x1');
 var $elm$svg$Svg$Attributes$x2 = _VirtualDom_attribute('x2');
 var $elm$svg$Svg$Attributes$y1 = _VirtualDom_attribute('y1');
 var $elm$svg$Svg$Attributes$y2 = _VirtualDom_attribute('y2');
-var $author$project$V2$horizontal = F3(
-	function (y, color, width) {
+var $author$project$V3$lineSegment = F4(
+	function (start, end, color, width) {
 		return A2(
 			$elm$svg$Svg$line,
 			_List_fromArray(
 				[
 					$elm$svg$Svg$Attributes$x1(
-					$elm$core$String$fromInt($author$project$V2$grid_size * (0 + 1))),
+					$elm$core$String$fromInt(start.x)),
 					$elm$svg$Svg$Attributes$y1(
-					$elm$core$String$fromInt($author$project$V2$grid_size * (y + 1))),
+					$elm$core$String$fromInt(start.y)),
 					$elm$svg$Svg$Attributes$x2(
-					$elm$core$String$fromInt($author$project$V2$grid_size * (14 + 1))),
+					$elm$core$String$fromInt(end.x)),
 					$elm$svg$Svg$Attributes$y2(
-					$elm$core$String$fromInt($author$project$V2$grid_size * (y + 1))),
+					$elm$core$String$fromInt(end.y)),
 					$elm$svg$Svg$Attributes$stroke(color),
 					$elm$svg$Svg$Attributes$strokeWidth(
 					$elm$core$String$fromInt(width))
 				]),
 			_List_Nil);
 	});
-var $elm$svg$Svg$Attributes$strokeDasharray = _VirtualDom_attribute('stroke-dasharray');
-var $author$project$V2$drawEndZones = function () {
-	var stroke_color = 'blue';
-	var fill_color = 'none';
-	var dash_rule = '10,10';
-	return _List_fromArray(
-		[
-			A2(
-			$elm$svg$Svg$rect,
-			_List_fromArray(
-				[
-					$elm$svg$Svg$Attributes$x(
-					$elm$core$String$fromInt(
-						$elm$core$Basics$round($author$project$V2$margin / 2))),
-					$elm$svg$Svg$Attributes$y(
-					$elm$core$String$fromInt(
-						$elm$core$Basics$round($author$project$V2$margin / 2))),
-					$elm$svg$Svg$Attributes$width(
-					$elm$core$String$fromInt($author$project$V2$game_width - $author$project$V2$grid_size)),
-					$elm$svg$Svg$Attributes$height(
-					$elm$core$String$fromInt(2 * $author$project$V2$grid_size)),
-					$elm$svg$Svg$Attributes$fill(fill_color),
-					$elm$svg$Svg$Attributes$stroke(stroke_color),
-					$elm$svg$Svg$Attributes$strokeDasharray(dash_rule),
-					$elm$svg$Svg$Attributes$strokeWidth('2')
-				]),
-			_List_Nil),
-			A2(
-			$elm$svg$Svg$rect,
-			_List_fromArray(
-				[
-					$elm$svg$Svg$Attributes$x(
-					$elm$core$String$fromInt(
-						$elm$core$Basics$round($author$project$V2$margin / 2))),
-					$elm$svg$Svg$Attributes$y(
-					$elm$core$String$fromInt(
-						($author$project$V2$game_height - $elm$core$Basics$round($author$project$V2$margin / 2)) - (2 * $author$project$V2$grid_size))),
-					$elm$svg$Svg$Attributes$width(
-					$elm$core$String$fromInt($author$project$V2$game_width - $author$project$V2$grid_size)),
-					$elm$svg$Svg$Attributes$height(
-					$elm$core$String$fromInt(2 * $author$project$V2$grid_size)),
-					$elm$svg$Svg$Attributes$fill(fill_color),
-					$elm$svg$Svg$Attributes$stroke(stroke_color),
-					$elm$svg$Svg$Attributes$strokeDasharray(dash_rule),
-					$elm$svg$Svg$Attributes$strokeWidth('2')
-				]),
-			_List_Nil),
-			A3($author$project$V2$horizontal, 0, 'black', 1),
-			A3($author$project$V2$horizontal, 20, 'black', 1)
-		]);
-}();
-var $author$project$V2$vertical = F3(
-	function (x, color, width) {
-		return A2(
-			$elm$svg$Svg$line,
-			_List_fromArray(
-				[
-					$elm$svg$Svg$Attributes$x1(
-					$elm$core$String$fromInt($author$project$V2$grid_size * (x + 1))),
-					$elm$svg$Svg$Attributes$y1(
-					$elm$core$String$fromInt($author$project$V2$grid_size * (1 + 1))),
-					$elm$svg$Svg$Attributes$x2(
-					$elm$core$String$fromInt($author$project$V2$grid_size * (x + 1))),
-					$elm$svg$Svg$Attributes$y2(
-					$elm$core$String$fromInt($author$project$V2$grid_size * (19 + 1))),
-					$elm$svg$Svg$Attributes$stroke(color),
-					$elm$svg$Svg$Attributes$strokeWidth(
-					$elm$core$String$fromInt(width))
-				]),
-			_List_Nil);
-	});
-var $author$project$V2$drawGrid = _Utils_ap(
-	A2(
-		$elm$core$List$map,
-		function (x) {
-			return A3($author$project$V2$vertical, x, 'black', 1);
-		},
-		A2($elm$core$List$range, 0, $author$project$V2$num_cols - 1)),
-	A2(
-		$elm$core$List$map,
-		function (y) {
-			return A3($author$project$V2$horizontal, y, 'black', 1);
-		},
-		A2($elm$core$List$range, 1, ($author$project$V2$num_rows - 1) + 1)));
-var $author$project$V2$drawPeople = function (game) {
-	var people = game.people;
-	var opacity = function (person) {
-		return A2(
-			$elm$core$List$member,
-			person,
-			$author$project$V2$jumpedList(game.ball)) ? 0.5 : 1;
-	};
-	return A2(
-		$elm$core$List$map,
-		function (person) {
-			return A4(
-				$author$project$V2$drawCircle,
-				person,
-				0.45 * $author$project$V2$grid_size,
-				'black',
-				opacity(person));
-		},
-		people);
+var $author$project$V3$unSnap = function (c) {
+	return A2($author$project$V3$Point, (c.x * $author$project$V3$unit) + $author$project$V3$margin, (c.y * $author$project$V3$unit) + $author$project$V3$margin);
 };
+var $author$project$V3$grid = F2(
+	function (num_rows, num_cols) {
+		var top = A2(
+			$elm$core$List$map,
+			function (x) {
+				return A2($author$project$V3$Coord, x, $author$project$V3$end_zone_length - 1);
+			},
+			A2($elm$core$List$range, 0, num_cols - 1));
+		var right = A2(
+			$elm$core$List$map,
+			function (y) {
+				return A2($author$project$V3$Coord, num_cols - 1, y);
+			},
+			A2($elm$core$List$range, 0, num_rows - 1));
+		var left = A2(
+			$elm$core$List$map,
+			function (y) {
+				return A2($author$project$V3$Coord, 0, y);
+			},
+			A2($elm$core$List$range, 0, num_rows - 1));
+		var gridLine = F2(
+			function (start, end) {
+				return A4(
+					$author$project$V3$lineSegment,
+					$author$project$V3$unSnap(start),
+					$author$project$V3$unSnap(end),
+					'black',
+					1);
+			});
+		var horizontal_lines = A3($elm$core$List$map2, gridLine, left, right);
+		var bottom = A2(
+			$elm$core$List$map,
+			function (x) {
+				return A2($author$project$V3$Coord, x, (num_rows - 1) - ($author$project$V3$end_zone_length - 1));
+			},
+			A2($elm$core$List$range, 0, num_cols - 1));
+		var vertical_lines = A3($elm$core$List$map2, gridLine, top, bottom);
+		return _Utils_ap(vertical_lines, horizontal_lines);
+	});
 var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
-var $author$project$V2$drawGame = F2(
-	function (game, mouse) {
-		return A2(
-			$elm$svg$Svg$svg,
+var $author$project$V3$draw = function (game) {
+	return A2(
+		$elm$svg$Svg$svg,
+		_List_fromArray(
+			[
+				$elm$svg$Svg$Attributes$width(
+				$elm$core$String$fromInt($author$project$V3$game_width)),
+				$elm$svg$Svg$Attributes$height(
+				$elm$core$String$fromInt($author$project$V3$game_height))
+			]),
+		_Utils_ap(
 			_List_fromArray(
-				[
-					$elm$svg$Svg$Attributes$width(
-					$elm$core$String$fromInt($author$project$V2$game_width)),
-					$elm$svg$Svg$Attributes$height(
-					$elm$core$String$fromInt($author$project$V2$game_height))
-				]),
+				[$author$project$V3$background]),
 			_Utils_ap(
-				_List_fromArray(
-					[$author$project$V2$drawBackground]),
-				_Utils_ap(
-					$author$project$V2$drawGrid,
-					_Utils_ap(
-						$author$project$V2$drawEndZones,
-						_Utils_ap(
-							$author$project$V2$drawPeople(game),
-							A2($author$project$V2$drawBall, game.ball, mouse))))));
-	});
-var $author$project$V2$view = function (model) {
-	var game = model.a;
-	var mouse = model.b;
-	return A2($author$project$V2$drawGame, game, mouse);
+				$author$project$V3$endZones,
+				A2($author$project$V3$grid, $author$project$V3$n_rows, $author$project$V3$n_cols))));
 };
-var $author$project$V2$main = $elm$browser$Browser$element(
-	{init: $author$project$V2$init, subscriptions: $author$project$V2$subscriptions, update: $author$project$V2$update, view: $author$project$V2$view});
-_Platform_export({'V2':{'init':$author$project$V2$main(
+var $author$project$V3$view = function (model) {
+	var game = model.a;
+	return $author$project$V3$draw(game);
+};
+var $author$project$V3$main = $elm$browser$Browser$element(
+	{init: $author$project$V3$init, subscriptions: $author$project$V3$subscriptions, update: $author$project$V3$update, view: $author$project$V3$view});
+_Platform_export({'V3':{'init':$author$project$V3$main(
 	$elm$json$Json$Decode$succeed(_Utils_Tuple0))(0)}});}(this));
 
-  var app = Elm.V2.init({ node: document.getElementById("elm") });
+  var app = Elm.V3.init({ node: document.getElementById("elm") });
 }
 catch (e)
 {
