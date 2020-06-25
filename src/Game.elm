@@ -90,10 +90,11 @@ tryMove game direction =
     moveHelper game direction game.ball.coord
 
 
-validBallMoves : Game -> List Coord
-validBallMoves game =
+validBallMove : Game -> Coord -> Bool
+validBallMove game landing_coord =
   let
   -- up, down, left, right, and the diagonals (of the first 4 directions rotated 45 degrees)
     move_directions = [Coord 1 0, Coord 0 1, Coord -1 0, Coord 0 -1, Coord 1 1, Coord 1 -1, Coord -1 1, Coord -1 -1]
+    possible_moves = List.filterMap (\dir -> tryMove game dir) move_directions
   in
-    List.filterMap (\dir -> tryMove game dir) move_directions
+    List.member landing_coord possible_moves
