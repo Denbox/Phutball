@@ -1,4 +1,4 @@
-module Draw exposing (..)
+module Draw exposing (draw)
 import Game exposing (..)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
@@ -9,7 +9,7 @@ import Html exposing (Html)
 draw : Game -> Html msg
 draw game =
   svg [width <| String.fromInt game_width, height <| String.fromInt game_height]
-  ([background] ++ endZones ++ (grid n_rows n_cols) ++ stones game.stones ++ [ballTrail game.ball, drawBall game.ball])
+  ([background] ++ endZones ++ (grid n_rows n_cols) ++ stones game.stones ++ [ballTrail game.ball, drawBall game])
 
 
 background : Svg msg
@@ -29,8 +29,8 @@ endZones =
       rect
       [ x      <| String.fromInt <| margin // 2
       , y      <| String.fromInt <| margin // 2
-      , width  <| String.fromInt <| unit * n_cols
-      , height <| String.fromInt <| unit * end_zone_length
+      , width  <| String.fromInt <| cell_size * n_cols
+      , height <| String.fromInt <| cell_size * end_zone_length
       , fill "none"
       , stroke "blue"
       , strokeDasharray "13,6"
@@ -39,9 +39,9 @@ endZones =
     bottom_zone =
       rect
       [ x      <| String.fromInt <| margin // 2
-      , y      <| String.fromInt <| game_height - unit * end_zone_length - margin // 2
-      , width  <| String.fromInt <| unit * n_cols
-      , height <| String.fromInt <| unit * end_zone_length
+      , y      <| String.fromInt <| game_height - cell_size * end_zone_length - margin // 2
+      , width  <| String.fromInt <| cell_size * n_cols
+      , height <| String.fromInt <| cell_size * end_zone_length
       , fill "none"
       , stroke "blue"
       , strokeDasharray "13,6"
@@ -55,7 +55,7 @@ disk point color radius opac =
   circle
   [ cx <| String.fromInt <| point.x
   , cy <| String.fromInt <| point.y
-  , r <| String.fromFloat <| unit * radius
+  , r <| String.fromFloat <| cell_size * radius
   , fill color
   , opacity <| String.fromFloat opac
   ] []
@@ -80,11 +80,11 @@ ballTrail ball =
     , strokeLinejoin "round"
     ] []
 
-drawBall : Game.Ball -> Svg msg
-drawBall ball =
+drawBall : Game -> Svg msg
+drawBall game =
   let
-    scale = if Game.dragging ball then 0.65 else 0.45
-    point = getBallPoint ball
+    scale = if draggingBall game then 0.65 else 0.45
+    point = getBallPoint game.ball
   in
     disk point "white" scale 1
 

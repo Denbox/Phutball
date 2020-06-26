@@ -5158,6 +5158,9 @@ var $elm$core$Task$perform = F2(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
 var $elm$browser$Browser$element = _Browser_element;
+var $author$project$V3$Playing = function (a) {
+	return {$: 'Playing', a: a};
+};
 var $author$project$Game$Ball = F3(
 	function (coord, history, point) {
 		return {coord: coord, history: history, point: point};
@@ -5170,56 +5173,46 @@ var $author$project$Game$Game = F3(
 	function (ball, stones, turn) {
 		return {ball: ball, stones: stones, turn: turn};
 	});
-var $author$project$V3$Playing = function (a) {
-	return {$: 'Playing', a: a};
-};
 var $author$project$Game$X = {$: 'X'};
+var $author$project$Game$initialize = A3(
+	$author$project$Game$Game,
+	A3(
+		$author$project$Game$Ball,
+		A2($author$project$Game$Coord, 7, 9),
+		_List_Nil,
+		$elm$core$Maybe$Nothing),
+	_List_fromArray(
+		[
+			A2($author$project$Game$Coord, 5, 2),
+			A2($author$project$Game$Coord, 10, 10)
+		]),
+	$author$project$Game$X);
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $author$project$V3$init = function (_v0) {
 	return _Utils_Tuple2(
-		$author$project$V3$Playing(
-			A3(
-				$author$project$Game$Game,
-				A3(
-					$author$project$Game$Ball,
-					A2($author$project$Game$Coord, 7, 9),
-					_List_Nil,
-					$elm$core$Maybe$Nothing),
-				_List_fromArray(
-					[
-						A2($author$project$Game$Coord, 5, 2),
-						A2($author$project$Game$Coord, 10, 10)
-					]),
-				$author$project$Game$X)),
+		$author$project$V3$Playing($author$project$Game$initialize),
 		$elm$core$Platform$Cmd$none);
 };
 var $author$project$V3$MouseDown = function (a) {
 	return {$: 'MouseDown', a: a};
 };
+var $author$project$V3$MouseMove = function (a) {
+	return {$: 'MouseMove', a: a};
+};
 var $author$project$V3$MouseUp = function (a) {
 	return {$: 'MouseUp', a: a};
 };
 var $elm$core$Platform$Sub$batch = _Platform_batch;
-var $elm$json$Json$Decode$field = _Json_decodeField;
-var $elm$json$Json$Decode$int = _Json_decodeInt;
-var $author$project$V3$decodeX = A2($elm$json$Json$Decode$field, 'pageX', $elm$json$Json$Decode$int);
-var $author$project$V3$decodeY = A2($elm$json$Json$Decode$field, 'pageY', $elm$json$Json$Decode$int);
 var $author$project$Game$Point = F2(
 	function (x, y) {
 		return {x: x, y: y};
 	});
-var $author$project$Game$unit = 35;
-var $author$project$Game$margin = $author$project$Game$unit;
-var $author$project$Game$snap = function (p) {
-	return A2($author$project$Game$Coord, ((p.x / $author$project$Game$unit) | 0) - $author$project$Game$margin, ((p.y / $author$project$Game$unit) | 0) - $author$project$Game$margin);
-};
-var $author$project$V3$toGrid = F2(
-	function (x, y) {
-		return $author$project$Game$snap(
-			A2($author$project$Game$Point, x, y));
-	});
-var $author$project$V3$decodeGridXY = A3($elm$json$Json$Decode$map2, $author$project$V3$toGrid, $author$project$V3$decodeX, $author$project$V3$decodeY);
+var $elm$json$Json$Decode$field = _Json_decodeField;
+var $elm$json$Json$Decode$int = _Json_decodeInt;
+var $author$project$V3$decodeX = A2($elm$json$Json$Decode$field, 'pageX', $elm$json$Json$Decode$int);
+var $author$project$V3$decodeY = A2($elm$json$Json$Decode$field, 'pageY', $elm$json$Json$Decode$int);
+var $author$project$V3$decodeXY = A3($elm$json$Json$Decode$map2, $author$project$Game$Point, $author$project$V3$decodeX, $author$project$V3$decodeY);
 var $elm$browser$Browser$Events$Document = {$: 'Document'};
 var $elm$browser$Browser$Events$MySub = F3(
 	function (a, b, c) {
@@ -5621,6 +5614,7 @@ var $elm$browser$Browser$Events$on = F3(
 			A3($elm$browser$Browser$Events$MySub, node, name, decoder));
 	});
 var $elm$browser$Browser$Events$onMouseDown = A2($elm$browser$Browser$Events$on, $elm$browser$Browser$Events$Document, 'mousedown');
+var $elm$browser$Browser$Events$onMouseMove = A2($elm$browser$Browser$Events$on, $elm$browser$Browser$Events$Document, 'mousemove');
 var $elm$browser$Browser$Events$onMouseUp = A2($elm$browser$Browser$Events$on, $elm$browser$Browser$Events$Document, 'mouseup');
 var $author$project$V3$subscriptions = function (model) {
 	var game = model.a;
@@ -5628,20 +5622,400 @@ var $author$project$V3$subscriptions = function (model) {
 		_List_fromArray(
 			[
 				$elm$browser$Browser$Events$onMouseDown(
-				A2($elm$json$Json$Decode$map, $author$project$V3$MouseDown, $author$project$V3$decodeGridXY)),
+				A2($elm$json$Json$Decode$map, $author$project$V3$MouseDown, $author$project$V3$decodeXY)),
+				$elm$browser$Browser$Events$onMouseMove(
+				A2($elm$json$Json$Decode$map, $author$project$V3$MouseMove, $author$project$V3$decodeXY)),
 				$elm$browser$Browser$Events$onMouseUp(
-				A2($elm$json$Json$Decode$map, $author$project$V3$MouseUp, $author$project$V3$decodeGridXY))
+				A2($elm$json$Json$Decode$map, $author$project$V3$MouseUp, $author$project$V3$decodeXY))
 			]));
 };
+var $author$project$Game$dragBall = F2(
+	function (game, point) {
+		var b = game.ball;
+		var dragged_ball = _Utils_update(
+			b,
+			{
+				point: $elm$core$Maybe$Just(point)
+			});
+		return _Utils_update(
+			game,
+			{ball: dragged_ball});
+	});
+var $author$project$Game$draggingBall = function (game) {
+	var _v0 = game.ball.point;
+	if (_v0.$ === 'Nothing') {
+		return false;
+	} else {
+		return true;
+	}
+};
+var $author$project$Game$cell_size = 35;
+var $author$project$Game$margin = $author$project$Game$cell_size;
+var $author$project$Game$snap = function (p) {
+	return A2($author$project$Game$Coord, ((p.x / $author$project$Game$cell_size) | 0) - $author$project$Game$margin, ((p.y / $author$project$Game$cell_size) | 0) - $author$project$Game$margin);
+};
+var $author$project$Game$enterMousePress = F2(
+	function (game, point) {
+		var b = game.ball;
+		var updated_ball = _Utils_update(
+			b,
+			{
+				point: $elm$core$Maybe$Just(point)
+			});
+		return _Utils_eq(
+			$author$project$Game$snap(point),
+			game.ball.coord) ? _Utils_update(
+			game,
+			{ball: updated_ball}) : game;
+	});
+var $elm$core$Basics$neq = _Utils_notEqual;
+var $author$project$Game$O = {$: 'O'};
+var $author$project$Game$nextTurn = function (turn) {
+	if (turn.$ === 'X') {
+		return $author$project$Game$O;
+	} else {
+		return $author$project$Game$X;
+	}
+};
+var $author$project$Game$finishBallTurn = function (game) {
+	var updated_turn = $author$project$Game$nextTurn(game.turn);
+	var updated_ball = A3($author$project$Game$Ball, game.ball.coord, _List_Nil, $elm$core$Maybe$Nothing);
+	var b = game.ball;
+	var normal_ball = _Utils_update(
+		b,
+		{point: $elm$core$Maybe$Nothing});
+	return (!_Utils_eq(game.ball.history, _List_Nil)) ? _Utils_update(
+		game,
+		{ball: updated_ball, turn: updated_turn}) : _Utils_update(
+		game,
+		{ball: normal_ball});
+};
+var $elm$core$Basics$negate = function (n) {
+	return -n;
+};
+var $elm$core$Basics$abs = function (n) {
+	return (n < 0) ? (-n) : n;
+};
+var $author$project$Game$cAdd = F2(
+	function (a, b) {
+		return A2($author$project$Game$Coord, a.x + b.x, a.y + b.y);
+	});
+var $author$project$Game$cSub = F2(
+	function (a, b) {
+		return A2($author$project$Game$Coord, a.x - b.x, a.y - b.y);
+	});
+var $elm$core$Basics$ge = _Utils_ge;
+var $author$project$Game$sign = function (x) {
+	return (x >= 0) ? 1 : (-1);
+};
+var $author$project$Game$makeUnitLength = function (coord) {
+	var _v0 = _Utils_Tuple2(coord.x, coord.y);
+	if (!_v0.a) {
+		if (!_v0.b) {
+			return $elm$core$Maybe$Nothing;
+		} else {
+			var y = _v0.b;
+			return $elm$core$Maybe$Just(
+				A2(
+					$author$project$Game$Coord,
+					0,
+					$author$project$Game$sign(y)));
+		}
+	} else {
+		if (!_v0.b) {
+			var x = _v0.a;
+			return $elm$core$Maybe$Just(
+				A2(
+					$author$project$Game$Coord,
+					$author$project$Game$sign(x),
+					0));
+		} else {
+			var x = _v0.a;
+			var y = _v0.b;
+			return (!_Utils_eq(
+				$elm$core$Basics$abs(x),
+				$elm$core$Basics$abs(y))) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(
+				A2(
+					$author$project$Game$Coord,
+					$author$project$Game$sign(x),
+					$author$project$Game$sign(y)));
+		}
+	}
+};
+var $author$project$Game$sMul = F2(
+	function (coord, scalar) {
+		return A2($author$project$Game$Coord, coord.x * scalar, coord.y * scalar);
+	});
+var $author$project$Game$coordsBetween = F2(
+	function (start, end) {
+		var diff = A2($author$project$Game$cSub, end, start);
+		var direction = $author$project$Game$makeUnitLength(diff);
+		var steps_to_end = A2(
+			$elm$core$Basics$max,
+			$elm$core$Basics$abs(diff.x),
+			$elm$core$Basics$abs(diff.y));
+		if (direction.$ === 'Nothing') {
+			return _List_Nil;
+		} else {
+			var dir = direction.a;
+			return A2(
+				$elm$core$List$map,
+				function (i) {
+					return A2(
+						$author$project$Game$cAdd,
+						start,
+						A2($author$project$Game$sMul, dir, i));
+				},
+				A2($elm$core$List$range, 1, steps_to_end - 1));
+		}
+	});
+var $elm$core$List$filter = F2(
+	function (isGood, list) {
+		return A3(
+			$elm$core$List$foldr,
+			F2(
+				function (x, xs) {
+					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
+				}),
+			_List_Nil,
+			list);
+	});
+var $elm$core$List$head = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(x);
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $elm$core$List$any = F2(
+	function (isOkay, list) {
+		any:
+		while (true) {
+			if (!list.b) {
+				return false;
+			} else {
+				var x = list.a;
+				var xs = list.b;
+				if (isOkay(x)) {
+					return true;
+				} else {
+					var $temp$isOkay = isOkay,
+						$temp$list = xs;
+					isOkay = $temp$isOkay;
+					list = $temp$list;
+					continue any;
+				}
+			}
+		}
+	});
+var $elm$core$List$member = F2(
+	function (x, xs) {
+		return A2(
+			$elm$core$List$any,
+			function (a) {
+				return _Utils_eq(a, x);
+			},
+			xs);
+	});
+var $elm$core$Basics$not = _Basics_not;
+var $elm$core$List$tail = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(xs);
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $author$project$Game$n_cols = 15;
+var $author$project$Game$n_rows = 19;
+var $author$project$Game$validBallCoord = function (c) {
+	return A2(
+		$elm$core$List$member,
+		c.x,
+		A2($elm$core$List$range, 0, $author$project$Game$n_cols - 1)) && A2(
+		$elm$core$List$member,
+		c.y,
+		A2($elm$core$List$range, 0, $author$project$Game$n_rows - 1));
+};
+var $author$project$Game$testMove = F2(
+	function (game, direction) {
+		var moveHelper = F3(
+			function (g, dir, current) {
+				moveHelper:
+				while (true) {
+					if (!$author$project$Game$validBallCoord(current)) {
+						return $elm$core$Maybe$Nothing;
+					} else {
+						if (!A2($elm$core$List$member, current, g.stones)) {
+							return (_Utils_eq(current, game.ball.coord) || _Utils_eq(
+								A2($author$project$Game$cAdd, current, dir),
+								game.ball.coord)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(current);
+						} else {
+							var $temp$g = g,
+								$temp$dir = dir,
+								$temp$current = A2($author$project$Game$cAdd, current, direction);
+							g = $temp$g;
+							dir = $temp$dir;
+							current = $temp$current;
+							continue moveHelper;
+						}
+					}
+				}
+			});
+		return A3(moveHelper, game, direction, game.ball.coord);
+	});
+var $author$project$Game$validBallMove = F2(
+	function (game, landing_coord) {
+		var move_directions = _List_fromArray(
+			[
+				A2($author$project$Game$Coord, 1, 0),
+				A2($author$project$Game$Coord, 0, 1),
+				A2($author$project$Game$Coord, -1, 0),
+				A2($author$project$Game$Coord, 0, -1),
+				A2($author$project$Game$Coord, 1, 1),
+				A2($author$project$Game$Coord, 1, -1),
+				A2($author$project$Game$Coord, -1, 1),
+				A2($author$project$Game$Coord, -1, -1)
+			]);
+		var possible_moves = A2(
+			$elm$core$List$filterMap,
+			$author$project$Game$testMove(game),
+			move_directions);
+		return A2($elm$core$List$member, landing_coord, possible_moves);
+	});
+var $elm$core$Maybe$withDefault = F2(
+	function (_default, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return value;
+		} else {
+			return _default;
+		}
+	});
+var $author$project$Game$moveBall = F2(
+	function (game, landing_coord) {
+		var b = game.ball;
+		var jumped_stones = A2($author$project$Game$coordsBetween, b.coord, landing_coord);
+		var redo_stones = A2(
+			$elm$core$List$filter,
+			function (stone) {
+				return !A2($elm$core$List$member, stone, jumped_stones);
+			},
+			game.stones);
+		var undo_stones = _Utils_ap(game.stones, jumped_stones);
+		var normal_ball = _Utils_update(
+			b,
+			{point: $elm$core$Maybe$Nothing});
+		var save_ball = A3(
+			$author$project$Game$Ball,
+			landing_coord,
+			A2($elm$core$List$cons, b.coord, b.history),
+			$elm$core$Maybe$Nothing);
+		var undo_ball = A3(
+			$author$project$Game$Ball,
+			landing_coord,
+			A2(
+				$elm$core$Maybe$withDefault,
+				_List_Nil,
+				$elm$core$List$tail(b.history)),
+			$elm$core$Maybe$Nothing);
+		var updated_ball = _Utils_eq(
+			$elm$core$List$head(b.history),
+			$elm$core$Maybe$Just(landing_coord)) ? undo_ball : save_ball;
+		var updated_stones = _Utils_eq(
+			$elm$core$List$head(b.history),
+			$elm$core$Maybe$Just(landing_coord)) ? undo_stones : redo_stones;
+		return A2($author$project$Game$validBallMove, game, landing_coord) ? _Utils_update(
+			game,
+			{ball: updated_ball, stones: updated_stones}) : _Utils_update(
+			game,
+			{ball: normal_ball});
+	});
+var $author$project$Game$end_zone_length = 2;
+var $author$project$Game$validStoneCoord = function (c) {
+	return A2(
+		$elm$core$List$member,
+		c.x,
+		A2($elm$core$List$range, 0, $author$project$Game$n_cols - 1)) && A2(
+		$elm$core$List$member,
+		c.y,
+		A2($elm$core$List$range, $author$project$Game$end_zone_length - 1, ($author$project$Game$n_rows - 1) - ($author$project$Game$end_zone_length - 1)));
+};
+var $author$project$Game$validPlacement = F2(
+	function (game, coord) {
+		var valid_location = $author$project$Game$validStoneCoord(coord);
+		var not_the_ball = !_Utils_eq(coord, game.ball.coord);
+		var not_moving_ball = _Utils_eq(game.ball.history, _List_Nil);
+		var no_stone_there = !A2($elm$core$List$member, coord, game.stones);
+		return no_stone_there && (not_the_ball && (valid_location && not_moving_ball));
+	});
+var $author$project$Game$placeStone = F2(
+	function (game, coord) {
+		if (A2($author$project$Game$validPlacement, game, coord)) {
+			var updated_turn = $author$project$Game$nextTurn(game.turn);
+			var updated_stones = A2($elm$core$List$cons, coord, game.stones);
+			return _Utils_update(
+				game,
+				{stones: updated_stones, turn: updated_turn});
+		} else {
+			return game;
+		}
+	});
+var $author$project$Game$validBallTurnFinish = F2(
+	function (game, coord) {
+		return (!_Utils_eq(game.ball.history, _List_Nil)) && _Utils_eq(game.ball.coord, coord);
+	});
 var $author$project$V3$update = F2(
 	function (msg, model) {
-		return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+		var game = model.a;
+		switch (msg.$) {
+			case 'MouseUp':
+				var point = msg.a;
+				return $author$project$Game$draggingBall(game) ? (A2(
+					$author$project$Game$validBallTurnFinish,
+					game,
+					$author$project$Game$snap(point)) ? _Utils_Tuple2(
+					$author$project$V3$Playing(
+						$author$project$Game$finishBallTurn(game)),
+					$elm$core$Platform$Cmd$none) : (A2(
+					$author$project$Game$validBallMove,
+					game,
+					$author$project$Game$snap(point)) ? _Utils_Tuple2(
+					$author$project$V3$Playing(
+						A2(
+							$author$project$Game$moveBall,
+							game,
+							$author$project$Game$snap(point))),
+					$elm$core$Platform$Cmd$none) : _Utils_Tuple2(model, $elm$core$Platform$Cmd$none))) : (A2(
+					$author$project$Game$validPlacement,
+					game,
+					$author$project$Game$snap(point)) ? _Utils_Tuple2(
+					$author$project$V3$Playing(
+						A2(
+							$author$project$Game$placeStone,
+							game,
+							$author$project$Game$snap(point))),
+					$elm$core$Platform$Cmd$none) : _Utils_Tuple2(model, $elm$core$Platform$Cmd$none));
+			case 'MouseDown':
+				var point = msg.a;
+				return _Utils_Tuple2(
+					$author$project$V3$Playing(
+						A2($author$project$Game$enterMousePress, game, point)),
+					$elm$core$Platform$Cmd$none);
+			default:
+				var point = msg.a;
+				return $author$project$Game$draggingBall(game) ? _Utils_Tuple2(
+					$author$project$V3$Playing(
+						A2($author$project$Game$dragBall, game, point)),
+					$elm$core$Platform$Cmd$none) : _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+		}
 	});
 var $elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
-var $author$project$Game$n_rows = 19;
-var $author$project$Game$game_height = ($author$project$Game$margin * 2) + ($author$project$Game$unit * ($author$project$Game$n_rows - 1));
-var $author$project$Game$n_cols = 15;
-var $author$project$Game$game_width = ($author$project$Game$margin * 2) + ($author$project$Game$unit * ($author$project$Game$n_cols - 1));
+var $author$project$Game$game_height = ($author$project$Game$margin * 2) + ($author$project$Game$cell_size * ($author$project$Game$n_rows - 1));
+var $author$project$Game$game_width = ($author$project$Game$margin * 2) + ($author$project$Game$cell_size * ($author$project$Game$n_cols - 1));
 var $elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
 var $elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
 var $elm$svg$Svg$rect = $elm$svg$Svg$trustedNode('rect');
@@ -5662,7 +6036,7 @@ var $author$project$Draw$background = A2(
 		]),
 	_List_Nil);
 var $author$project$Game$unSnap = function (c) {
-	return A2($author$project$Game$Point, (c.x * $author$project$Game$unit) + $author$project$Game$margin, (c.y * $author$project$Game$unit) + $author$project$Game$margin);
+	return A2($author$project$Game$Point, (c.x * $author$project$Game$cell_size) + $author$project$Game$margin, (c.y * $author$project$Game$cell_size) + $author$project$Game$margin);
 };
 var $author$project$Game$getBallPoint = function (b) {
 	var _v0 = b.point;
@@ -5722,27 +6096,18 @@ var $author$project$Draw$disk = F4(
 					$elm$svg$Svg$Attributes$cy(
 					$elm$core$String$fromInt(point.y)),
 					$elm$svg$Svg$Attributes$r(
-					$elm$core$String$fromFloat($author$project$Game$unit * radius)),
+					$elm$core$String$fromFloat($author$project$Game$cell_size * radius)),
 					$elm$svg$Svg$Attributes$fill(color),
 					$elm$svg$Svg$Attributes$opacity(
 					$elm$core$String$fromFloat(opac))
 				]),
 			_List_Nil);
 	});
-var $author$project$Game$dragging = function (ball) {
-	var _v0 = ball.point;
-	if (_v0.$ === 'Nothing') {
-		return false;
-	} else {
-		return true;
-	}
-};
-var $author$project$Draw$drawBall = function (ball) {
-	var scale = $author$project$Game$dragging(ball) ? 0.65 : 0.45;
-	var point = $author$project$Game$getBallPoint(ball);
+var $author$project$Draw$drawBall = function (game) {
+	var scale = $author$project$Game$draggingBall(game) ? 0.65 : 0.45;
+	var point = $author$project$Game$getBallPoint(game.ball);
 	return A4($author$project$Draw$disk, point, 'white', scale, 1);
 };
-var $author$project$Game$end_zone_length = 2;
 var $elm$svg$Svg$Attributes$strokeDasharray = _VirtualDom_attribute('stroke-dasharray');
 var $author$project$Draw$endZones = function () {
 	var top_zone = A2(
@@ -5754,9 +6119,9 @@ var $author$project$Draw$endZones = function () {
 				$elm$svg$Svg$Attributes$y(
 				$elm$core$String$fromInt(($author$project$Game$margin / 2) | 0)),
 				$elm$svg$Svg$Attributes$width(
-				$elm$core$String$fromInt($author$project$Game$unit * $author$project$Game$n_cols)),
+				$elm$core$String$fromInt($author$project$Game$cell_size * $author$project$Game$n_cols)),
 				$elm$svg$Svg$Attributes$height(
-				$elm$core$String$fromInt($author$project$Game$unit * $author$project$Game$end_zone_length)),
+				$elm$core$String$fromInt($author$project$Game$cell_size * $author$project$Game$end_zone_length)),
 				$elm$svg$Svg$Attributes$fill('none'),
 				$elm$svg$Svg$Attributes$stroke('blue'),
 				$elm$svg$Svg$Attributes$strokeDasharray('13,6'),
@@ -5770,11 +6135,11 @@ var $author$project$Draw$endZones = function () {
 				$elm$svg$Svg$Attributes$x(
 				$elm$core$String$fromInt(($author$project$Game$margin / 2) | 0)),
 				$elm$svg$Svg$Attributes$y(
-				$elm$core$String$fromInt(($author$project$Game$game_height - ($author$project$Game$unit * $author$project$Game$end_zone_length)) - (($author$project$Game$margin / 2) | 0))),
+				$elm$core$String$fromInt(($author$project$Game$game_height - ($author$project$Game$cell_size * $author$project$Game$end_zone_length)) - (($author$project$Game$margin / 2) | 0))),
 				$elm$svg$Svg$Attributes$width(
-				$elm$core$String$fromInt($author$project$Game$unit * $author$project$Game$n_cols)),
+				$elm$core$String$fromInt($author$project$Game$cell_size * $author$project$Game$n_cols)),
 				$elm$svg$Svg$Attributes$height(
-				$elm$core$String$fromInt($author$project$Game$unit * $author$project$Game$end_zone_length)),
+				$elm$core$String$fromInt($author$project$Game$cell_size * $author$project$Game$end_zone_length)),
 				$elm$svg$Svg$Attributes$fill('none'),
 				$elm$svg$Svg$Attributes$stroke('blue'),
 				$elm$svg$Svg$Attributes$strokeDasharray('13,6'),
@@ -5884,19 +6249,11 @@ var $author$project$Draw$draw = function (game) {
 						_List_fromArray(
 							[
 								$author$project$Draw$ballTrail(game.ball),
-								$author$project$Draw$drawBall(game.ball)
+								$author$project$Draw$drawBall(game)
 							]))))));
 };
-var $elm$core$Basics$neq = _Utils_notEqual;
 var $author$project$V3$view = function (model) {
 	var game = model.a;
-	var stones = game.stones;
-	var dragging = !_Utils_eq(game.ball.point, $elm$core$Maybe$Nothing);
-	var ball_position = $author$project$Game$getBallPoint(game.ball);
-	var ball_history = A2(
-		$elm$core$List$cons,
-		ball_position,
-		A2($elm$core$List$map, $author$project$Game$unSnap, game.ball.history));
 	return $author$project$Draw$draw(game);
 };
 var $author$project$V3$main = $elm$browser$Browser$element(
