@@ -9,7 +9,7 @@ import Html exposing (Html)
 draw : Game -> Html msg
 draw game =
   svg [width <| String.fromInt game_width, height <| String.fromInt game_height]
-  ([background] ++ endZones ++ (grid n_rows n_cols) ++ stones game.stones ++ [ballTrail game.ball, drawBall game])
+  ([background] ++ endZones ++ (grid n_rows n_cols) ++ stones game.stones ++ [ballTrail game, drawBall game])
 
 
 background : Svg msg
@@ -64,11 +64,12 @@ stones : List Coord -> List (Svg msg)
 stones coords =
   List.map (\c -> disk (Game.unSnap c) "black" 0.45 1) coords
 
-ballTrail : Ball -> Svg msg
-ballTrail ball =
+ballTrail : Game -> Svg msg
+ballTrail game =
   let
+    ball = game.ball
     pointToStr point = String.fromInt point.x ++ "," ++ String.fromInt point.y
-    ball_history_points = (getBallPoint ball) :: ball.history
+    ball_history_points = (getBallPoint game) :: ball.history
     ball_history_str = String.join " " <| List.map pointToStr ball_history_points
   in
     polyline
@@ -82,11 +83,11 @@ ballTrail ball =
 
 drawBall : Game -> Svg msg
 drawBall game =
-  let
-    scale = if draggingBall game then 0.65 else 0.45
-    point = getBallPoint game.ball
-  in
-    disk point "white" scale 1
+  case game.ball.point of
+    Just point ->
+      disk point "white" 0.65 1
+    Nothing ->
+      disk (unSnap game.ball.coord) "white" 0.45 1
 
 jumpedStones : List Coord -> List (Svg msg)
 jumpedStones coords =

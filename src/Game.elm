@@ -1,4 +1,4 @@
-module Game exposing (Coord, Point, Game, Ball, initialize, validBallMove, validPlacement, validBallTurnFinish, dragBall, moveBall, finishBallTurn, placeStone, enterMousePress, getBallPoint, snap, unSnap, draggingBall, n_rows, n_cols, end_zone_length, cell_size, margin, game_width, game_height)
+module Game exposing (Coord, Point, Game, Ball, initialize, testMove, validBallMove, validPlacement, validBallTurnFinish, dragBall, moveBall, finishBallTurn, placeStone, enterMousePress, getBallPoint, setBallPoint, snap, unSnap, n_rows, n_cols, end_zone_length, cell_size, margin, game_width, game_height)
 
 import List exposing (member, range, map, filter, filterMap, head, tail)
 import Maybe exposing (withDefault)
@@ -82,21 +82,21 @@ type alias Game =
   , turn : Turn
   }
 
-getBallPoint : Ball -> Point
-getBallPoint b =
-  case b.point of
+getBallPoint : Game -> Point
+getBallPoint game =
+  case game.ball.point of
     Nothing ->
-      unSnap b.coord
+      unSnap game.ball.coord
     Just point ->
       point
 
-draggingBall : Game -> Bool
-draggingBall game =
-  case game.ball.point of
-    Nothing ->
-      False
-    Just _ ->
-      True
+setBallPoint : Game -> Point -> Game
+setBallPoint game point =
+  let
+    b = game.ball
+    updated_ball = {b | point = Just point}
+  in
+    {game | ball = updated_ball}
 
 validBallCoord c =
   member c.x (range 0 <| n_cols - 1) && member c.y (range 0 <| n_rows - 1)
@@ -110,22 +110,24 @@ unSnap c =
 
 snap : Point -> Coord
 snap p =
-  Coord (p.x // cell_size - margin) (p.y // cell_size - margin)
+  Coord (round ((toFloat p.x - margin) / cell_size)) (round ((toFloat p.y - margin) / cell_size))
 
 testMove : Game -> Coord -> Maybe Coord
 testMove game direction =
   let
     moveHelper : Game -> Coord -> Coord -> Maybe Coord
     moveHelper g dir current =
-      if not <| validBallCoord current then
+      if current == game.ball.coord then
+        moveHelper g dir (cAdd current dir)
+      else if not <| validBallCoord current then
         Nothing
       else if not <| member current g.stones then
-        if current == game.ball.coord || (cAdd current dir) == game.ball.coord then
+        if (cAdd game.ball.coord dir) == current then
           Nothing
         else
           Just current
       else
-        moveHelper g dir (cAdd current direction)
+        moveHelper g dir (cAdd current dir)
   in
     moveHelper game direction game.ball.coord
 
@@ -231,4 +233,4 @@ placeStone game coord =
     game
 
 initialize : Game
-initialize = Game (Ball (Coord 7 9) [] Nothing) [Coord 5 2, Coord 10 10] X
+initialize = Game (Ball (Coord 7 9) [] Nothing) [Coord 5 2, Coord 8 9, Coord 9 9, Coord 8 10, Coord 1 2] X
