@@ -6104,11 +6104,13 @@ var $author$project$Draw$ballTrail = function (game) {
 	var pointToStr = function (point) {
 		return $elm$core$String$fromInt(point.x) + (',' + $elm$core$String$fromInt(point.y));
 	};
-	var ball = game.ball;
+	var ball_point = $author$project$Game$getBallPoint(game);
+	var ball_history = A2($elm$core$List$map, $author$project$Game$unSnap, game.ball.history);
+	var ball_coord = $author$project$Game$unSnap(game.ball.coord);
 	var ball_history_points = A2(
 		$elm$core$List$cons,
-		$author$project$Game$getBallPoint(game),
-		ball.history);
+		ball_point,
+		A2($elm$core$List$cons, ball_coord, ball_history));
 	var ball_history_str = A2(
 		$elm$core$String$join,
 		' ',
@@ -6270,6 +6272,36 @@ var $author$project$Draw$grid = F2(
 		var vertical_lines = A3($elm$core$List$map2, gridLine, top, bottom);
 		return _Utils_ap(vertical_lines, horizontal_lines);
 	});
+var $elm$core$List$append = F2(
+	function (xs, ys) {
+		if (!ys.b) {
+			return xs;
+		} else {
+			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
+		}
+	});
+var $elm$core$List$concat = function (lists) {
+	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
+};
+var $author$project$Draw$jumpedStones = function (game) {
+	var coords = $elm$core$List$concat(
+		A3(
+			$elm$core$List$map2,
+			$author$project$Game$coordsBetween,
+			A2($elm$core$List$cons, game.ball.coord, game.ball.history),
+			game.ball.history));
+	return A2(
+		$elm$core$List$map,
+		function (c) {
+			return A4(
+				$author$project$Draw$disk,
+				$author$project$Game$unSnap(c),
+				'black',
+				0.45,
+				0.5);
+		},
+		coords);
+};
 var $author$project$Draw$stones = function (coords) {
 	return A2(
 		$elm$core$List$map,
@@ -6303,11 +6335,13 @@ var $author$project$Draw$draw = function (game) {
 					A2($author$project$Draw$grid, $author$project$Game$n_rows, $author$project$Game$n_cols),
 					_Utils_ap(
 						$author$project$Draw$stones(game.stones),
-						_List_fromArray(
-							[
-								$author$project$Draw$ballTrail(game),
-								$author$project$Draw$drawBall(game)
-							]))))));
+						_Utils_ap(
+							$author$project$Draw$jumpedStones(game),
+							_List_fromArray(
+								[
+									$author$project$Draw$ballTrail(game),
+									$author$project$Draw$drawBall(game)
+								])))))));
 };
 var $author$project$V3$view = function (model) {
 	var game = model.a;

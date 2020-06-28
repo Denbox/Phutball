@@ -1,4 +1,4 @@
-module Game exposing (Coord, Point, Game, Ball, initialize, testMove, validBallMove, validPlacement, validBallTurnFinish, dragBall, moveBall, finishBallTurn, placeStone, enterMousePress, getBallPoint, setBallPoint, snap, unSnap, n_rows, n_cols, end_zone_length, cell_size, margin, game_width, game_height)
+module Game exposing (Coord, Point, Game, Ball, initialize, testMove, validBallMove, validPlacement, validBallTurnFinish, dragBall, moveBall, finishBallTurn, placeStone, enterMousePress, getBallPoint, coordsBetween, setBallPoint, snap, unSnap, n_rows, n_cols, end_zone_length, cell_size, margin, game_width, game_height)
 
 import List exposing (member, range, map, filter, filterMap, head, tail)
 import Maybe exposing (withDefault)

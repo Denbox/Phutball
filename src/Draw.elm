@@ -9,7 +9,7 @@ import Html exposing (Html)
 draw : Game -> Html msg
 draw game =
   svg [width <| String.fromInt game_width, height <| String.fromInt game_height]
-  ([background] ++ endZones ++ (grid n_rows n_cols) ++ stones game.stones ++ [ballTrail game, drawBall game])
+  ([background] ++ endZones ++ (grid n_rows n_cols) ++ stones game.stones ++ jumpedStones game ++ [ballTrail game, drawBall game])
 
 
 background : Svg msg
@@ -64,12 +64,22 @@ stones : List Coord -> List (Svg msg)
 stones coords =
   List.map (\c -> disk (Game.unSnap c) "black" 0.45 1) coords
 
+jumpedStones : Game -> List (Svg msg)
+jumpedStones game =
+  let
+    coords = List.concat (List.map2 Game.coordsBetween (game.ball.coord :: game.ball.history) game.ball.history)
+  in
+  List.map (\c -> disk (Game.unSnap c) "black" 0.45 0.5) coords
+
 ballTrail : Game -> Svg msg
 ballTrail game =
   let
-    ball = game.ball
     pointToStr point = String.fromInt point.x ++ "," ++ String.fromInt point.y
-    ball_history_points = (getBallPoint game) :: ball.history
+    ball_point = getBallPoint game
+    ball_coord = Game.unSnap game.ball.coord
+    ball_history = (List.map Game.unSnap game.ball.history)
+    -- ball_history_points = (getBallPoint game) :: (Game.unSnap game.ball.coord) :: (List.map Game.unSnap game.ball.history)
+    ball_history_points = ball_point :: ball_coord :: ball_history
     ball_history_str = String.join " " <| List.map pointToStr ball_history_points
   in
     polyline
@@ -87,11 +97,7 @@ drawBall game =
     Just point ->
       disk point "white" 0.65 1
     Nothing ->
-      disk (unSnap game.ball.coord) "white" 0.45 1
-
-jumpedStones : List Coord -> List (Svg msg)
-jumpedStones coords =
-  List.map (\c -> disk (Game.unSnap c) "black" 0.45 0.5) coords
+      disk (Game.unSnap game.ball.coord) "white" 0.45 1
 
 lineSegment : Point -> Point -> String -> Int -> Svg msg
 lineSegment start end color width =
