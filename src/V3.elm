@@ -2,7 +2,7 @@ module V3 exposing (main)
 import Browser
 import Browser.Events exposing (onMouseDown, onMouseUp, onMouseMove)
 import Html exposing (Html)
-import Json.Decode exposing (..)
+import Json.Decode exposing (Decoder, field, int, map, map2)
 import Draw exposing (draw)
 import Game exposing (..)
 
@@ -10,8 +10,14 @@ type Model =
   Playing Game Mouse
 
 type Mouse
-  = Pressing Point Point
+  -- = Pressing Side Point Point
+  = LeftPress Point Point
+  | RightPress Point Point
   | Up
+
+type Side
+  = Left
+  | Right
 
 ballSelected : Game -> Point -> Bool
 ballSelected game press_location =
@@ -19,7 +25,7 @@ ballSelected game press_location =
 
 type Msg
   = MouseUp Point
-  | MouseDown Point
+  | MouseDown Side Point
   | MouseMove Point
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -28,13 +34,13 @@ update msg model =
     Playing game mouse ->
       case msg of
         MouseUp end ->
-          case mouse of
-            Pressing start current ->
-              let
-                release_mouse : Result String Game -> (Model, Cmd Msg)
-                release_mouse result_game =
-                  (Playing (Result.withDefault game result_game) Up, Cmd.none)
-              in
+          let
+            release_mouse : Result String Game -> (Model, Cmd Msg)
+            release_mouse result_game =
+              (Playing (Result.withDefault game result_game) Up, Cmd.none)
+          in
+            case mouse of
+              LeftPress start _ ->
                 if ballSelected game start then
                   if validBallTurnFinish game (snap end) then
                     release_mouse (finishBallTurn game (snap end))
@@ -45,18 +51,23 @@ update msg model =
                     release_mouse (placeStone game (snap end))
                   else
                     release_mouse (Ok game)
-            Up -> -- this case should never occur
-              (model, Cmd.none)
-        MouseDown point ->
+              RightPress start _ ->
+                release_mouse (undoBallMove game (snap end))
+                -- (model, Cmd.none)
+              Up -> -- this case should never occur
+                (model, Cmd.none)
+        MouseDown side point ->
           case mouse of
-            Pressing _ _ -> -- this case should never occur
+            LeftPress _ _ -> -- this case should never occur
+              (model, Cmd.none)
+            RightPress _ _ -> -- this case should never occur
               (model, Cmd.none)
             Up ->
-              (Playing game (Pressing point point), Cmd.none)
+              (Playing game (LeftPress point point), Cmd.none)
         MouseMove current ->
           case mouse of
-            Pressing start _ ->
-              (Playing game (Pressing start current), Cmd.none)
+            LeftPress start _ ->
+              (Playing game (LeftPress start current), Cmd.none)
             _ ->
               (model, Cmd.none)
 
@@ -69,25 +80,33 @@ view model =
   case model of
     Playing game mouse ->
       case mouse of
-        Pressing start current ->
+        LeftPress start current ->
           if ballSelected game start then
             draw game (Just current)
           else
             draw game Nothing
-        Up ->
+        _ ->
           draw game Nothing
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
   Sub.batch
-  [ Browser.Events.onMouseDown (Json.Decode.map MouseDown decodeXY)
-  , Browser.Events.onMouseMove (Json.Decode.map MouseMove decodeXY)
-  , Browser.Events.onMouseUp   (Json.Decode.map MouseUp   decodeXY)
+  [ onMouseDown (map2 selectPressType decodeSide decodeXY)
+  , onMouseMove (map MouseMove decodeXY)
+  , onMouseUp   (map MouseUp   decodeXY)
   ]
 
-decodeX  = (Json.Decode.field "pageX" Json.Decode.int)
-decodeY  = (Json.Decode.field "pageY" Json.Decode.int)
-decodeXY = (Json.Decode.map2 Point decodeX decodeY)
+decodeSide = (field "which" int)
+decodeX       = (field "pageX" int)
+decodeY       = (field "pageY" int)
+decodeXY      = (map2 Point decodeX decodeY)
+
+-- selectPressType : Int -> Point -> Sub Msg
+selectPressType mouse_button_used point =
+  if mouse_button_used == 3 then
+    MouseDown Right point
+  else
+    MouseDown Left point
 
 main =
     Browser.element

@@ -5198,9 +5198,6 @@ var $author$project$V3$init = function (_v0) {
 		A2($author$project$V3$Playing, $author$project$Game$initialize, $author$project$V3$Up),
 		$elm$core$Platform$Cmd$none);
 };
-var $author$project$V3$MouseDown = function (a) {
-	return {$: 'MouseDown', a: a};
-};
 var $author$project$V3$MouseMove = function (a) {
 	return {$: 'MouseMove', a: a};
 };
@@ -5208,12 +5205,13 @@ var $author$project$V3$MouseUp = function (a) {
 	return {$: 'MouseUp', a: a};
 };
 var $elm$core$Platform$Sub$batch = _Platform_batch;
+var $elm$json$Json$Decode$field = _Json_decodeField;
+var $elm$json$Json$Decode$int = _Json_decodeInt;
+var $author$project$V3$decodeSide = A2($elm$json$Json$Decode$field, 'which', $elm$json$Json$Decode$int);
 var $author$project$Game$Point = F2(
 	function (x, y) {
 		return {x: x, y: y};
 	});
-var $elm$json$Json$Decode$field = _Json_decodeField;
-var $elm$json$Json$Decode$int = _Json_decodeInt;
 var $author$project$V3$decodeX = A2($elm$json$Json$Decode$field, 'pageX', $elm$json$Json$Decode$int);
 var $author$project$V3$decodeY = A2($elm$json$Json$Decode$field, 'pageY', $elm$json$Json$Decode$int);
 var $author$project$V3$decodeXY = A3($elm$json$Json$Decode$map2, $author$project$Game$Point, $author$project$V3$decodeX, $author$project$V3$decodeY);
@@ -5620,21 +5618,31 @@ var $elm$browser$Browser$Events$on = F3(
 var $elm$browser$Browser$Events$onMouseDown = A2($elm$browser$Browser$Events$on, $elm$browser$Browser$Events$Document, 'mousedown');
 var $elm$browser$Browser$Events$onMouseMove = A2($elm$browser$Browser$Events$on, $elm$browser$Browser$Events$Document, 'mousemove');
 var $elm$browser$Browser$Events$onMouseUp = A2($elm$browser$Browser$Events$on, $elm$browser$Browser$Events$Document, 'mouseup');
-var $author$project$V3$subscriptions = function (model) {
+var $author$project$V3$Left = {$: 'Left'};
+var $author$project$V3$MouseDown = F2(
+	function (a, b) {
+		return {$: 'MouseDown', a: a, b: b};
+	});
+var $author$project$V3$Right = {$: 'Right'};
+var $author$project$V3$selectPressType = F2(
+	function (mouse_button_used, point) {
+		return (mouse_button_used === 3) ? A2($author$project$V3$MouseDown, $author$project$V3$Right, point) : A2($author$project$V3$MouseDown, $author$project$V3$Left, point);
+	});
+var $author$project$V3$subscriptions = function (_v0) {
 	return $elm$core$Platform$Sub$batch(
 		_List_fromArray(
 			[
 				$elm$browser$Browser$Events$onMouseDown(
-				A2($elm$json$Json$Decode$map, $author$project$V3$MouseDown, $author$project$V3$decodeXY)),
+				A3($elm$json$Json$Decode$map2, $author$project$V3$selectPressType, $author$project$V3$decodeSide, $author$project$V3$decodeXY)),
 				$elm$browser$Browser$Events$onMouseMove(
 				A2($elm$json$Json$Decode$map, $author$project$V3$MouseMove, $author$project$V3$decodeXY)),
 				$elm$browser$Browser$Events$onMouseUp(
 				A2($elm$json$Json$Decode$map, $author$project$V3$MouseUp, $author$project$V3$decodeXY))
 			]));
 };
-var $author$project$V3$Pressing = F2(
+var $author$project$V3$LeftPress = F2(
 	function (a, b) {
-		return {$: 'Pressing', a: a, b: b};
+		return {$: 'LeftPress', a: a, b: b};
 	});
 var $author$project$Game$cell_size = 35;
 var $author$project$Game$margin = $author$project$Game$cell_size;
@@ -5759,15 +5767,6 @@ var $elm$core$List$filter = F2(
 			_List_Nil,
 			list);
 	});
-var $elm$core$List$head = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return $elm$core$Maybe$Just(x);
-	} else {
-		return $elm$core$Maybe$Nothing;
-	}
-};
 var $elm$core$List$any = F2(
 	function (isOkay, list) {
 		any:
@@ -5799,15 +5798,6 @@ var $elm$core$List$member = F2(
 			xs);
 	});
 var $elm$core$Basics$not = _Basics_not;
-var $elm$core$List$tail = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return $elm$core$Maybe$Just(xs);
-	} else {
-		return $elm$core$Maybe$Nothing;
-	}
-};
 var $author$project$Game$n_cols = 15;
 var $author$project$Game$n_rows = 19;
 var $author$project$Game$validBallCoord = function (c) {
@@ -5875,43 +5865,20 @@ var $author$project$Game$validBallMove = F2(
 			move_directions);
 		return A2($elm$core$List$member, landing_coord, possible_moves);
 	});
-var $elm$core$Maybe$withDefault = F2(
-	function (_default, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return value;
-		} else {
-			return _default;
-		}
-	});
 var $author$project$Game$moveBall = F2(
 	function (game, landing_coord) {
 		var b = game.ball;
 		var jumped_stones = A2($author$project$Game$coordsBetween, b.coord, landing_coord);
-		var redo_stones = A2(
+		var updated_stones = A2(
 			$elm$core$List$filter,
 			function (stone) {
 				return !A2($elm$core$List$member, stone, jumped_stones);
 			},
 			game.stones);
-		var undo_stones = _Utils_ap(game.stones, jumped_stones);
-		var save_ball = A2(
+		var updated_ball = A2(
 			$author$project$Game$Ball,
 			landing_coord,
 			A2($elm$core$List$cons, b.coord, b.history));
-		var undo_ball = A2(
-			$author$project$Game$Ball,
-			landing_coord,
-			A2(
-				$elm$core$Maybe$withDefault,
-				_List_Nil,
-				$elm$core$List$tail(b.history)));
-		var updated_ball = _Utils_eq(
-			$elm$core$List$head(b.history),
-			$elm$core$Maybe$Just(landing_coord)) ? undo_ball : save_ball;
-		var updated_stones = _Utils_eq(
-			$elm$core$List$head(b.history),
-			$elm$core$Maybe$Just(landing_coord)) ? undo_stones : redo_stones;
 		return A2($author$project$Game$validBallMove, game, landing_coord) ? $elm$core$Result$Ok(
 			_Utils_update(
 				game,
@@ -5948,6 +5915,40 @@ var $author$project$Game$placeStone = F2(
 			return $elm$core$Result$Err('Invalid stone placement');
 		}
 	});
+var $elm$core$List$tail = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(xs);
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $elm$core$Maybe$withDefault = F2(
+	function (_default, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return value;
+		} else {
+			return _default;
+		}
+	});
+var $author$project$Game$undoBallMove = F2(
+	function (game, coord) {
+		var undo_ball = A2(
+			$author$project$Game$Ball,
+			coord,
+			A2(
+				$elm$core$Maybe$withDefault,
+				_List_Nil,
+				$elm$core$List$tail(game.ball.history)));
+		var jumped_stones = A2($author$project$Game$coordsBetween, game.ball.coord, coord);
+		var undo_stones = _Utils_ap(game.stones, jumped_stones);
+		return _Utils_eq(game.ball.coord, coord) ? $elm$core$Result$Ok(
+			_Utils_update(
+				game,
+				{ball: undo_ball, stones: undo_stones})) : $elm$core$Result$Err('Can\'t undo ball move');
+	});
 var $author$project$Game$validBallTurnFinish = F2(
 	function (game, coord) {
 		return (!_Utils_eq(game.ball.history, _List_Nil)) && _Utils_eq(game.ball.coord, coord);
@@ -5968,63 +5969,77 @@ var $author$project$V3$update = F2(
 		switch (msg.$) {
 			case 'MouseUp':
 				var end = msg.a;
-				if (mouse.$ === 'Pressing') {
-					var start = mouse.a;
-					var current = mouse.b;
-					var release_mouse = function (result_game) {
+				var release_mouse = function (result_game) {
+					return _Utils_Tuple2(
+						A2(
+							$author$project$V3$Playing,
+							A2($elm$core$Result$withDefault, game, result_game),
+							$author$project$V3$Up),
+						$elm$core$Platform$Cmd$none);
+				};
+				switch (mouse.$) {
+					case 'LeftPress':
+						var start = mouse.a;
+						return A2($author$project$V3$ballSelected, game, start) ? (A2(
+							$author$project$Game$validBallTurnFinish,
+							game,
+							$author$project$Game$snap(end)) ? release_mouse(
+							A2(
+								$author$project$Game$finishBallTurn,
+								game,
+								$author$project$Game$snap(end))) : release_mouse(
+							A2(
+								$author$project$Game$moveBall,
+								game,
+								$author$project$Game$snap(end)))) : (_Utils_eq(
+							$author$project$Game$snap(end),
+							$author$project$Game$snap(start)) ? release_mouse(
+							A2(
+								$author$project$Game$placeStone,
+								game,
+								$author$project$Game$snap(end))) : release_mouse(
+							$elm$core$Result$Ok(game)));
+					case 'RightPress':
+						var start = mouse.a;
+						return release_mouse(
+							A2(
+								$author$project$Game$undoBallMove,
+								game,
+								$author$project$Game$snap(end)));
+					default:
+						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				}
+			case 'MouseDown':
+				var side = msg.a;
+				var point = msg.b;
+				switch (mouse.$) {
+					case 'LeftPress':
+						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+					case 'RightPress':
+						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+					default:
 						return _Utils_Tuple2(
 							A2(
 								$author$project$V3$Playing,
-								A2($elm$core$Result$withDefault, game, result_game),
-								$author$project$V3$Up),
+								game,
+								A2($author$project$V3$LeftPress, point, point)),
 							$elm$core$Platform$Cmd$none);
-					};
-					return A2($author$project$V3$ballSelected, game, start) ? (A2(
-						$author$project$Game$validBallTurnFinish,
-						game,
-						$author$project$Game$snap(end)) ? release_mouse(
-						A2(
-							$author$project$Game$finishBallTurn,
-							game,
-							$author$project$Game$snap(end))) : release_mouse(
-						A2(
-							$author$project$Game$moveBall,
-							game,
-							$author$project$Game$snap(end)))) : (_Utils_eq(
-						$author$project$Game$snap(end),
-						$author$project$Game$snap(start)) ? release_mouse(
-						A2(
-							$author$project$Game$placeStone,
-							game,
-							$author$project$Game$snap(end))) : release_mouse(
-						$elm$core$Result$Ok(game)));
-				} else {
-					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-				}
-			case 'MouseDown':
-				var point = msg.a;
-				if (mouse.$ === 'Pressing') {
-					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-				} else {
-					return _Utils_Tuple2(
-						A2(
-							$author$project$V3$Playing,
-							game,
-							A2($author$project$V3$Pressing, point, point)),
-						$elm$core$Platform$Cmd$none);
 				}
 			default:
 				var current = msg.a;
-				if (mouse.$ === 'Pressing') {
-					var start = mouse.a;
-					return _Utils_Tuple2(
-						A2(
-							$author$project$V3$Playing,
-							game,
-							A2($author$project$V3$Pressing, start, current)),
-						$elm$core$Platform$Cmd$none);
-				} else {
-					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				switch (mouse.$) {
+					case 'LeftPress':
+						var start = mouse.a;
+						return _Utils_Tuple2(
+							A2(
+								$author$project$V3$Playing,
+								game,
+								A2($author$project$V3$LeftPress, start, current)),
+							$elm$core$Platform$Cmd$none);
+					case 'RightPress':
+						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+					default:
+						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				}
 		}
 	});
@@ -6319,15 +6334,18 @@ var $author$project$Draw$draw = F2(
 var $author$project$V3$view = function (model) {
 	var game = model.a;
 	var mouse = model.b;
-	if (mouse.$ === 'Pressing') {
-		var start = mouse.a;
-		var current = mouse.b;
-		return A2($author$project$V3$ballSelected, game, start) ? A2(
-			$author$project$Draw$draw,
-			game,
-			$elm$core$Maybe$Just(current)) : A2($author$project$Draw$draw, game, $elm$core$Maybe$Nothing);
-	} else {
-		return A2($author$project$Draw$draw, game, $elm$core$Maybe$Nothing);
+	switch (mouse.$) {
+		case 'LeftPress':
+			var start = mouse.a;
+			var current = mouse.b;
+			return A2($author$project$V3$ballSelected, game, start) ? A2(
+				$author$project$Draw$draw,
+				game,
+				$elm$core$Maybe$Just(current)) : A2($author$project$Draw$draw, game, $elm$core$Maybe$Nothing);
+		case 'RightPress':
+			return A2($author$project$Draw$draw, game, $elm$core$Maybe$Nothing);
+		default:
+			return A2($author$project$Draw$draw, game, $elm$core$Maybe$Nothing);
 	}
 };
 var $author$project$V3$main = $elm$browser$Browser$element(

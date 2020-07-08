@@ -1,4 +1,4 @@
-module Game exposing (Coord, Point, Game, Ball, initialize, testMove, validBallMove, validPlacement, validBallTurnFinish, moveBall, finishBallTurn, placeStone, coordsBetween, snap, unSnap, n_rows, n_cols, end_zone_length, cell_size, margin, game_width, game_height)
+module Game exposing (Coord, Point, Game, Ball, initialize, testMove, validBallMove, validPlacement, validBallTurnFinish, moveBall, undoBallMove, finishBallTurn, placeStone, coordsBetween, snap, unSnap, n_rows, n_cols, end_zone_length, cell_size, margin, game_width, game_height)
 
 import List exposing (member, range, map, filter, filterMap, head, tail)
 import Maybe exposing (withDefault)
@@ -151,18 +151,26 @@ moveBall : Game -> Coord -> Result String Game
 moveBall game landing_coord =
   let
     b = game.ball
-    undo_ball = Ball landing_coord (withDefault [] <| tail b.history)
-    save_ball = Ball landing_coord (b.coord::b.history)
+    updated_ball = Ball landing_coord (b.coord::b.history)
     jumped_stones = coordsBetween b.coord landing_coord
-    undo_stones = game.stones ++ jumped_stones
-    redo_stones = filter (\stone -> not <| member stone jumped_stones) game.stones
-    updated_ball   = if head b.history == Just landing_coord then undo_ball else save_ball
-    updated_stones = if head b.history == Just landing_coord then undo_stones else redo_stones
+    updated_stones = filter (\stone -> not <| member stone jumped_stones) game.stones
   in
     if validBallMove game landing_coord then
       Ok {game | ball = updated_ball, stones = updated_stones} -- turn only switches when we finish a ball move
     else
       Err "Invalid ball move"
+
+undoBallMove : Game -> Coord -> Result String Game
+undoBallMove game coord =
+  let
+    undo_ball = Ball coord (withDefault [] <| tail game.ball.history)
+    jumped_stones = coordsBetween game.ball.coord coord
+    undo_stones = game.stones ++ jumped_stones
+  in
+    if game.ball.coord == coord then
+      Ok {game | ball = undo_ball, stones = undo_stones}
+    else
+      Err "Can't undo ball move"
 
 validBallTurnFinish : Game -> Coord -> Bool
 validBallTurnFinish game coord =
