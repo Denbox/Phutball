@@ -1,4 +1,4 @@
-module V3 exposing (..)
+module V3 exposing (main)
 import Browser
 import Browser.Events exposing (onMouseDown, onMouseUp, onMouseMove)
 import Html exposing (Html)
@@ -10,9 +10,15 @@ type Model =
   Playing Game Mouse
 
 type Mouse
-  = DraggingBall Point
-  | Pressing Coord
+  = Pressing Point Point
   | Up
+  -- = DraggingBall Point
+  -- | Pressing Coord
+  -- | Up
+
+ballSelected : Game -> Point -> Bool
+ballSelected game press_location =
+  game.ball.coord == snap press_location
 
 type Msg
   = MouseUp Point
@@ -24,37 +30,31 @@ update msg model =
   case model of
     Playing game mouse ->
       case msg of
-        MouseUp point ->
+        MouseUp end ->
           case mouse of
-            DraggingBall _ ->
-              -- try to do a ball move
-              if validBallTurnFinish game (snap point) then
-                (Playing (finishBallTurn game) Up, Cmd.none)
+            Pressing start current ->
+              if ballSelected game start then
+                if validBallTurnFinish game (snap end) then
+                  (Playing (finishBallTurn game) Up, Cmd.none)
+                else
+                  (Playing (moveBall game (snap end)) Up, Cmd.none)
               else
-                (Playing (moveBall game (snap point)) Up, Cmd.none)
-            Pressing start_coord ->
-              -- try to place stone
-              if snap point == start_coord then
-                (Playing (placeStone game (snap point)) Up, Cmd.none)
-              else
-                (model, Cmd.none)
+                if snap end == snap start then
+                  (Playing (placeStone game (snap end)) Up, Cmd.none)
+                else
+                  (model, Cmd.none)
             Up -> -- this case should never occur
               (model, Cmd.none)
         MouseDown point ->
           case mouse of
-            DraggingBall _ -> -- this case should never occur
-              (model, Cmd.none)
-            Pressing _ -> -- this case should never occur
+            Pressing _ _ -> -- this case should never occur
               (model, Cmd.none)
             Up ->
-              if snap point == game.ball.coord then
-                (Playing game (DraggingBall point), Cmd.none)
-              else
-                (Playing game (Pressing (snap point)), Cmd.none)
-        MouseMove point ->
+              (Playing game (Pressing point point), Cmd.none)
+        MouseMove current ->
           case mouse of
-            DraggingBall _ ->
-              (Playing game (DraggingBall point), Cmd.none)
+            Pressing start _ ->
+              (Playing game (Pressing start current), Cmd.none)
             _ ->
               (model, Cmd.none)
 
@@ -67,9 +67,12 @@ view model =
   case model of
     Playing game mouse ->
       case mouse of
-        DraggingBall point ->
-          draw game (Just point)
-        _ ->
+        Pressing start current ->
+          if ballSelected game start then
+            draw game (Just current)
+          else
+            draw game Nothing
+        Up ->
           draw game Nothing
 
 subscriptions : Model -> Sub Msg

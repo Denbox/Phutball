@@ -9,7 +9,7 @@ import Html exposing (Html)
 draw : Game -> Maybe Point -> Html msg
 draw game mouse_point =
   svg [width <| String.fromInt game_width, height <| String.fromInt game_height]
-  ([background] ++ endZones ++ (grid n_rows n_cols) ++ stones game.stones ++ jumpedStones game ++ [ballTrail game mouse_point, drawBall game mouse_point])
+  ([background] ++ endZones ++ (grid n_rows n_cols) ++ stones game.stones ++ jumpedStones game ++ [ballTrail game mouse_point, ball game mouse_point])
 
 
 background : Svg msg
@@ -92,8 +92,8 @@ ballTrail game mouse_dragging =
       Nothing ->
         trail <| List.map Game.unSnap (game.ball.coord :: game.ball.history)
 
-drawBall : Game -> Maybe Point -> Svg msg
-drawBall game mouse_dragging =
+ball : Game -> Maybe Point -> Svg msg
+ball game mouse_dragging =
   case mouse_dragging of
     Just point ->
       disk point "white" 0.65 1
