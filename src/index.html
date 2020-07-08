@@ -5163,9 +5163,9 @@ var $author$project$V3$Playing = F2(
 		return {$: 'Playing', a: a, b: b};
 	});
 var $author$project$V3$Up = {$: 'Up'};
-var $author$project$Game$Ball = F3(
-	function (coord, history, point) {
-		return {coord: coord, history: history, point: point};
+var $author$project$Game$Ball = F2(
+	function (coord, history) {
+		return {coord: coord, history: history};
 	});
 var $author$project$Game$Coord = F2(
 	function (x, y) {
@@ -5178,11 +5178,10 @@ var $author$project$Game$Game = F3(
 var $author$project$Game$X = {$: 'X'};
 var $author$project$Game$initialize = A3(
 	$author$project$Game$Game,
-	A3(
+	A2(
 		$author$project$Game$Ball,
 		A2($author$project$Game$Coord, 7, 9),
-		_List_Nil,
-		$elm$core$Maybe$Nothing),
+		_List_Nil),
 	_List_fromArray(
 		[
 			A2($author$project$Game$Coord, 5, 2),
@@ -5633,22 +5632,12 @@ var $author$project$V3$subscriptions = function (model) {
 				A2($elm$json$Json$Decode$map, $author$project$V3$MouseUp, $author$project$V3$decodeXY))
 			]));
 };
-var $author$project$V3$DraggingBall = {$: 'DraggingBall'};
+var $author$project$V3$DraggingBall = function (a) {
+	return {$: 'DraggingBall', a: a};
+};
 var $author$project$V3$Pressing = function (a) {
 	return {$: 'Pressing', a: a};
 };
-var $author$project$Game$dragBall = F2(
-	function (game, point) {
-		var b = game.ball;
-		var dragged_ball = _Utils_update(
-			b,
-			{
-				point: $elm$core$Maybe$Just(point)
-			});
-		return _Utils_update(
-			game,
-			{ball: dragged_ball});
-	});
 var $elm$core$Basics$neq = _Utils_notEqual;
 var $author$project$Game$O = {$: 'O'};
 var $author$project$Game$nextTurn = function (turn) {
@@ -5660,30 +5649,11 @@ var $author$project$Game$nextTurn = function (turn) {
 };
 var $author$project$Game$finishBallTurn = function (game) {
 	var updated_turn = $author$project$Game$nextTurn(game.turn);
-	var updated_ball = A3($author$project$Game$Ball, game.ball.coord, _List_Nil, $elm$core$Maybe$Nothing);
+	var updated_ball = A2($author$project$Game$Ball, game.ball.coord, _List_Nil);
 	var b = game.ball;
-	var normal_ball = _Utils_update(
-		b,
-		{point: $elm$core$Maybe$Nothing});
 	return (!_Utils_eq(game.ball.history, _List_Nil)) ? _Utils_update(
 		game,
-		{ball: updated_ball, turn: updated_turn}) : _Utils_update(
-		game,
-		{ball: normal_ball});
-};
-var $author$project$Game$cell_size = 35;
-var $author$project$Game$margin = $author$project$Game$cell_size;
-var $author$project$Game$unSnap = function (c) {
-	return A2($author$project$Game$Point, (c.x * $author$project$Game$cell_size) + $author$project$Game$margin, (c.y * $author$project$Game$cell_size) + $author$project$Game$margin);
-};
-var $author$project$Game$getBallPoint = function (game) {
-	var _v0 = game.ball.point;
-	if (_v0.$ === 'Nothing') {
-		return $author$project$Game$unSnap(game.ball.coord);
-	} else {
-		var point = _v0.a;
-		return point;
-	}
+		{ball: updated_ball, turn: updated_turn}) : game;
 };
 var $elm$core$Basics$negate = function (n) {
 	return -n;
@@ -5911,22 +5881,17 @@ var $author$project$Game$moveBall = F2(
 			},
 			game.stones);
 		var undo_stones = _Utils_ap(game.stones, jumped_stones);
-		var normal_ball = _Utils_update(
-			b,
-			{point: $elm$core$Maybe$Nothing});
-		var save_ball = A3(
+		var save_ball = A2(
 			$author$project$Game$Ball,
 			landing_coord,
-			A2($elm$core$List$cons, b.coord, b.history),
-			$elm$core$Maybe$Nothing);
-		var undo_ball = A3(
+			A2($elm$core$List$cons, b.coord, b.history));
+		var undo_ball = A2(
 			$author$project$Game$Ball,
 			landing_coord,
 			A2(
 				$elm$core$Maybe$withDefault,
 				_List_Nil,
-				$elm$core$List$tail(b.history)),
-			$elm$core$Maybe$Nothing);
+				$elm$core$List$tail(b.history)));
 		var updated_ball = _Utils_eq(
 			$elm$core$List$head(b.history),
 			$elm$core$Maybe$Just(landing_coord)) ? undo_ball : save_ball;
@@ -5935,9 +5900,7 @@ var $author$project$Game$moveBall = F2(
 			$elm$core$Maybe$Just(landing_coord)) ? undo_stones : redo_stones;
 		return A2($author$project$Game$validBallMove, game, landing_coord) ? _Utils_update(
 			game,
-			{ball: updated_ball, stones: updated_stones}) : _Utils_update(
-			game,
-			{ball: normal_ball});
+			{ball: updated_ball, stones: updated_stones}) : game;
 	});
 var $author$project$Game$end_zone_length = 2;
 var $author$project$Game$validStoneCoord = function (c) {
@@ -5969,18 +5932,8 @@ var $author$project$Game$placeStone = F2(
 			return game;
 		}
 	});
-var $author$project$Game$setBallPoint = F2(
-	function (game, point) {
-		var b = game.ball;
-		var updated_ball = _Utils_update(
-			b,
-			{
-				point: $elm$core$Maybe$Just(point)
-			});
-		return _Utils_update(
-			game,
-			{ball: updated_ball});
-	});
+var $author$project$Game$cell_size = 35;
+var $author$project$Game$margin = $author$project$Game$cell_size;
 var $elm$core$Basics$round = _Basics_round;
 var $author$project$Game$snap = function (p) {
 	return A2(
@@ -6043,13 +5996,12 @@ var $author$project$V3$update = F2(
 						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 					default:
 						return _Utils_eq(
-							$author$project$Game$unSnap(
-								$author$project$Game$snap(point)),
-							$author$project$Game$getBallPoint(game)) ? _Utils_Tuple2(
+							$author$project$Game$snap(point),
+							game.ball.coord) ? _Utils_Tuple2(
 							A2(
 								$author$project$V3$Playing,
-								A2($author$project$Game$setBallPoint, game, point),
-								$author$project$V3$DraggingBall),
+								game,
+								$author$project$V3$DraggingBall(point)),
 							$elm$core$Platform$Cmd$none) : _Utils_Tuple2(
 							A2(
 								$author$project$V3$Playing,
@@ -6064,8 +6016,8 @@ var $author$project$V3$update = F2(
 					return _Utils_Tuple2(
 						A2(
 							$author$project$V3$Playing,
-							A2($author$project$Game$dragBall, game, point),
-							$author$project$V3$DraggingBall),
+							game,
+							$author$project$V3$DraggingBall(point)),
 						$elm$core$Platform$Cmd$none);
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -6100,35 +6052,51 @@ var $elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
 var $elm$svg$Svg$Attributes$strokeLinecap = _VirtualDom_attribute('stroke-linecap');
 var $elm$svg$Svg$Attributes$strokeLinejoin = _VirtualDom_attribute('stroke-linejoin');
 var $elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
-var $author$project$Draw$ballTrail = function (game) {
-	var pointToStr = function (point) {
-		return $elm$core$String$fromInt(point.x) + (',' + $elm$core$String$fromInt(point.y));
-	};
-	var ball_point = $author$project$Game$getBallPoint(game);
-	var ball_history = A2($elm$core$List$map, $author$project$Game$unSnap, game.ball.history);
-	var ball_coord = $author$project$Game$unSnap(game.ball.coord);
-	var ball_history_points = A2(
-		$elm$core$List$cons,
-		ball_point,
-		A2($elm$core$List$cons, ball_coord, ball_history));
-	var ball_history_str = A2(
-		$elm$core$String$join,
-		' ',
-		A2($elm$core$List$map, pointToStr, ball_history_points));
-	return A2(
-		$elm$svg$Svg$polyline,
-		_List_fromArray(
-			[
-				$elm$svg$Svg$Attributes$points(ball_history_str),
-				$elm$svg$Svg$Attributes$stroke('red'),
-				$elm$svg$Svg$Attributes$strokeWidth(
-				$elm$core$String$fromInt(10)),
-				$elm$svg$Svg$Attributes$fill('none'),
-				$elm$svg$Svg$Attributes$strokeLinecap('round'),
-				$elm$svg$Svg$Attributes$strokeLinejoin('round')
-			]),
-		_List_Nil);
+var $author$project$Game$unSnap = function (c) {
+	return A2($author$project$Game$Point, (c.x * $author$project$Game$cell_size) + $author$project$Game$margin, (c.y * $author$project$Game$cell_size) + $author$project$Game$margin);
 };
+var $author$project$Draw$ballTrail = F2(
+	function (game, mouse_dragging) {
+		var pointToStr = function (point) {
+			return $elm$core$String$fromInt(point.x) + (',' + $elm$core$String$fromInt(point.y));
+		};
+		var trail = function (history) {
+			return A2(
+				$elm$svg$Svg$polyline,
+				_List_fromArray(
+					[
+						$elm$svg$Svg$Attributes$points(
+						A2(
+							$elm$core$String$join,
+							' ',
+							A2($elm$core$List$map, pointToStr, history))),
+						$elm$svg$Svg$Attributes$stroke('red'),
+						$elm$svg$Svg$Attributes$strokeWidth(
+						$elm$core$String$fromInt(10)),
+						$elm$svg$Svg$Attributes$fill('none'),
+						$elm$svg$Svg$Attributes$strokeLinecap('round'),
+						$elm$svg$Svg$Attributes$strokeLinejoin('round')
+					]),
+				_List_Nil);
+		};
+		if (mouse_dragging.$ === 'Just') {
+			var point = mouse_dragging.a;
+			return trail(
+				A2(
+					$elm$core$List$cons,
+					point,
+					A2(
+						$elm$core$List$map,
+						$author$project$Game$unSnap,
+						A2($elm$core$List$cons, game.ball.coord, game.ball.history))));
+		} else {
+			return trail(
+				A2(
+					$elm$core$List$map,
+					$author$project$Game$unSnap,
+					A2($elm$core$List$cons, game.ball.coord, game.ball.history)));
+		}
+	});
 var $elm$svg$Svg$circle = $elm$svg$Svg$trustedNode('circle');
 var $elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
 var $elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
@@ -6153,20 +6121,20 @@ var $author$project$Draw$disk = F4(
 				]),
 			_List_Nil);
 	});
-var $author$project$Draw$drawBall = function (game) {
-	var _v0 = game.ball.point;
-	if (_v0.$ === 'Just') {
-		var point = _v0.a;
-		return A4($author$project$Draw$disk, point, 'white', 0.65, 1);
-	} else {
-		return A4(
-			$author$project$Draw$disk,
-			$author$project$Game$unSnap(game.ball.coord),
-			'white',
-			0.45,
-			1);
-	}
-};
+var $author$project$Draw$drawBall = F2(
+	function (game, mouse_dragging) {
+		if (mouse_dragging.$ === 'Just') {
+			var point = mouse_dragging.a;
+			return A4($author$project$Draw$disk, point, 'white', 0.65, 1);
+		} else {
+			return A4(
+				$author$project$Draw$disk,
+				$author$project$Game$unSnap(game.ball.coord),
+				'white',
+				0.45,
+				1);
+		}
+	});
 var $elm$svg$Svg$Attributes$strokeDasharray = _VirtualDom_attribute('stroke-dasharray');
 var $author$project$Draw$endZones = function () {
 	var top_zone = A2(
@@ -6316,36 +6284,46 @@ var $author$project$Draw$stones = function (coords) {
 		coords);
 };
 var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
-var $author$project$Draw$draw = function (game) {
-	return A2(
-		$elm$svg$Svg$svg,
-		_List_fromArray(
-			[
-				$elm$svg$Svg$Attributes$width(
-				$elm$core$String$fromInt($author$project$Game$game_width)),
-				$elm$svg$Svg$Attributes$height(
-				$elm$core$String$fromInt($author$project$Game$game_height))
-			]),
-		_Utils_ap(
+var $author$project$Draw$draw = F2(
+	function (game, mouse_point) {
+		return A2(
+			$elm$svg$Svg$svg,
 			_List_fromArray(
-				[$author$project$Draw$background]),
+				[
+					$elm$svg$Svg$Attributes$width(
+					$elm$core$String$fromInt($author$project$Game$game_width)),
+					$elm$svg$Svg$Attributes$height(
+					$elm$core$String$fromInt($author$project$Game$game_height))
+				]),
 			_Utils_ap(
-				$author$project$Draw$endZones,
+				_List_fromArray(
+					[$author$project$Draw$background]),
 				_Utils_ap(
-					A2($author$project$Draw$grid, $author$project$Game$n_rows, $author$project$Game$n_cols),
+					$author$project$Draw$endZones,
 					_Utils_ap(
-						$author$project$Draw$stones(game.stones),
+						A2($author$project$Draw$grid, $author$project$Game$n_rows, $author$project$Game$n_cols),
 						_Utils_ap(
-							$author$project$Draw$jumpedStones(game),
-							_List_fromArray(
-								[
-									$author$project$Draw$ballTrail(game),
-									$author$project$Draw$drawBall(game)
-								])))))));
-};
+							$author$project$Draw$stones(game.stones),
+							_Utils_ap(
+								$author$project$Draw$jumpedStones(game),
+								_List_fromArray(
+									[
+										A2($author$project$Draw$ballTrail, game, mouse_point),
+										A2($author$project$Draw$drawBall, game, mouse_point)
+									])))))));
+	});
 var $author$project$V3$view = function (model) {
 	var game = model.a;
-	return $author$project$Draw$draw(game);
+	var mouse = model.b;
+	if (mouse.$ === 'DraggingBall') {
+		var point = mouse.a;
+		return A2(
+			$author$project$Draw$draw,
+			game,
+			$elm$core$Maybe$Just(point));
+	} else {
+		return A2($author$project$Draw$draw, game, $elm$core$Maybe$Nothing);
+	}
 };
 var $author$project$V3$main = $elm$browser$Browser$element(
 	{init: $author$project$V3$init, subscriptions: $author$project$V3$subscriptions, update: $author$project$V3$update, view: $author$project$V3$view});

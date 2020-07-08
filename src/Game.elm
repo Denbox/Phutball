@@ -1,4 +1,4 @@
-module Game exposing (Coord, Point, Game, Ball, initialize, testMove, validBallMove, validPlacement, validBallTurnFinish, dragBall, moveBall, finishBallTurn, placeStone, enterMousePress, getBallPoint, coordsBetween, setBallPoint, snap, unSnap, n_rows, n_cols, end_zone_length, cell_size, margin, game_width, game_height)
+module Game exposing (Coord, Point, Game, Ball, initialize, testMove, validBallMove, validPlacement, validBallTurnFinish, moveBall, finishBallTurn, placeStone, coordsBetween, snap, unSnap, n_rows, n_cols, end_zone_length, cell_size, margin, game_width, game_height)
 
 import List exposing (member, range, map, filter, filterMap, head, tail)
 import Maybe exposing (withDefault)
@@ -73,7 +73,6 @@ nextTurn turn =
 type alias Ball =
   { coord : Coord
   , history : List Coord
-  , point : Maybe Point -- used if ball is currently being moved
   }
 
 type alias Game =
@@ -81,22 +80,6 @@ type alias Game =
   , stones : List Coord
   , turn : Turn
   }
-
-getBallPoint : Game -> Point
-getBallPoint game =
-  case game.ball.point of
-    Nothing ->
-      unSnap game.ball.coord
-    Just point ->
-      point
-
-setBallPoint : Game -> Point -> Game
-setBallPoint game point =
-  let
-    b = game.ball
-    updated_ball = {b | point = Just point}
-  in
-    {game | ball = updated_ball}
 
 validBallCoord c =
   member c.x (range 0 <| n_cols - 1) && member c.y (range 0 <| n_rows - 1)
@@ -168,9 +151,8 @@ moveBall : Game -> Coord -> Game
 moveBall game landing_coord =
   let
     b = game.ball
-    undo_ball = Ball landing_coord (withDefault [] <| tail b.history) Nothing
-    save_ball = Ball landing_coord (b.coord::b.history) Nothing
-    normal_ball = {b | point = Nothing}
+    undo_ball = Ball landing_coord (withDefault [] <| tail b.history)
+    save_ball = Ball landing_coord (b.coord::b.history)
     jumped_stones = coordsBetween b.coord landing_coord
     undo_stones = game.stones ++ jumped_stones
     redo_stones = filter (\stone -> not <| member stone jumped_stones) game.stones
@@ -180,29 +162,7 @@ moveBall game landing_coord =
     if validBallMove game landing_coord then
       {game | ball = updated_ball, stones = updated_stones} -- turn only switches when we finish a ball move
     else
-      {game | ball = normal_ball}
-
--- this is used to update the grpahics of the ball position
-dragBall : Game -> Point -> Game
-dragBall game point =
-  let
-    b = game.ball
-    dragged_ball = {b | point = Just point}
-  in
-  {game | ball = dragged_ball}
-
-enterMousePress : Game -> Point -> Game
-enterMousePress game point =
-  let
-    b = game.ball
-    updated_ball = {b | point = Just point}
-  in
-    if snap point == game.ball.coord then
-      {game | ball = updated_ball}
-    else
       game
-
-
 
 validBallTurnFinish : Game -> Coord -> Bool
 validBallTurnFinish game coord =
@@ -212,14 +172,13 @@ finishBallTurn : Game -> Game
 finishBallTurn game =
   let
     b = game.ball
-    updated_ball = Ball game.ball.coord [] Nothing
+    updated_ball = Ball game.ball.coord []
     updated_turn = nextTurn game.turn
-    normal_ball = {b | point = Nothing}
   in
     if game.ball.history /= [] then
       {game | ball = updated_ball, turn = updated_turn}
     else
-      {game | ball = normal_ball}
+      game
 
 placeStone : Game -> Coord -> Game
 placeStone game coord =
@@ -233,4 +192,4 @@ placeStone game coord =
     game
 
 initialize : Game
-initialize = Game (Ball (Coord 7 9) [] Nothing) [Coord 5 2, Coord 8 9, Coord 9 9, Coord 8 10, Coord 1 2] X
+initialize = Game (Ball (Coord 7 9) []) [Coord 5 2, Coord 8 9, Coord 9 9, Coord 8 10, Coord 1 2] X

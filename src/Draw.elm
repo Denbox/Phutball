@@ -6,10 +6,10 @@ import Html exposing (Html)
 
 -- draw : List Coord -> List Point -> Point -> Bool -> Html msg
 -- draw stone_coords ball_history ball_point dragging =
-draw : Game -> Html msg
-draw game =
+draw : Game -> Maybe Point -> Html msg
+draw game mouse_point =
   svg [width <| String.fromInt game_width, height <| String.fromInt game_height]
-  ([background] ++ endZones ++ (grid n_rows n_cols) ++ stones game.stones ++ jumpedStones game ++ [ballTrail game, drawBall game])
+  ([background] ++ endZones ++ (grid n_rows n_cols) ++ stones game.stones ++ jumpedStones game ++ [ballTrail game mouse_point, drawBall game mouse_point])
 
 
 background : Svg msg
@@ -71,29 +71,30 @@ jumpedStones game =
   in
   List.map (\c -> disk (Game.unSnap c) "black" 0.45 0.5) coords
 
-ballTrail : Game -> Svg msg
-ballTrail game =
+ballTrail : Game -> Maybe Point -> Svg msg
+ballTrail game mouse_dragging =
   let
     pointToStr point = String.fromInt point.x ++ "," ++ String.fromInt point.y
-    ball_point = getBallPoint game
-    ball_coord = Game.unSnap game.ball.coord
-    ball_history = (List.map Game.unSnap game.ball.history)
-    -- ball_history_points = (getBallPoint game) :: (Game.unSnap game.ball.coord) :: (List.map Game.unSnap game.ball.history)
-    ball_history_points = ball_point :: ball_coord :: ball_history
-    ball_history_str = String.join " " <| List.map pointToStr ball_history_points
+    trail : List Point -> Svg msg
+    trail history =
+      polyline
+      [ points <| String.join " " <| List.map pointToStr history
+      , stroke "red"
+      , strokeWidth <| String.fromInt 10
+      , fill "none"
+      , strokeLinecap "round"
+      , strokeLinejoin "round"
+      ] []
   in
-    polyline
-    [ points ball_history_str
-    , stroke "red"
-    , strokeWidth <| String.fromInt 10
-    , fill "none"
-    , strokeLinecap "round"
-    , strokeLinejoin "round"
-    ] []
+    case mouse_dragging of
+      Just point ->
+        trail <| point :: (List.map Game.unSnap (game.ball.coord :: game.ball.history))
+      Nothing ->
+        trail <| List.map Game.unSnap (game.ball.coord :: game.ball.history)
 
-drawBall : Game -> Svg msg
-drawBall game =
-  case game.ball.point of
+drawBall : Game -> Maybe Point -> Svg msg
+drawBall game mouse_dragging =
+  case mouse_dragging of
     Just point ->
       disk point "white" 0.65 1
     Nothing ->
