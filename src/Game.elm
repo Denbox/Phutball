@@ -147,7 +147,7 @@ validPlacement game coord =
   in
     no_stone_there && not_the_ball && valid_location && not_moving_ball
 
-moveBall : Game -> Coord -> Game
+moveBall : Game -> Coord -> Result String Game
 moveBall game landing_coord =
   let
     b = game.ball
@@ -160,36 +160,35 @@ moveBall game landing_coord =
     updated_stones = if head b.history == Just landing_coord then undo_stones else redo_stones
   in
     if validBallMove game landing_coord then
-      {game | ball = updated_ball, stones = updated_stones} -- turn only switches when we finish a ball move
+      Ok {game | ball = updated_ball, stones = updated_stones} -- turn only switches when we finish a ball move
     else
-      game
+      Err "Invalid ball move"
 
 validBallTurnFinish : Game -> Coord -> Bool
 validBallTurnFinish game coord =
   game.ball.history /= [] && game.ball.coord == coord
 
-finishBallTurn : Game -> Game
-finishBallTurn game =
+finishBallTurn : Game -> Coord -> Result String Game
+finishBallTurn game coord =
   let
-    b = game.ball
     updated_ball = Ball game.ball.coord []
     updated_turn = nextTurn game.turn
   in
-    if game.ball.history /= [] then
-      {game | ball = updated_ball, turn = updated_turn}
+    if game.ball.history /= [] && coord == game.ball.coord then
+      Ok {game | ball = updated_ball, turn = updated_turn}
     else
-      game
+      Err "Invalid turn finish"
 
-placeStone : Game -> Coord -> Game
+placeStone : Game -> Coord -> Result String Game
 placeStone game coord =
   if validPlacement game coord then
     let
       updated_stones = coord::game.stones
       updated_turn = nextTurn game.turn
     in
-      {game | stones = updated_stones, turn = updated_turn}
+      Ok {game | stones = updated_stones, turn = updated_turn}
   else
-    game
+    Err "Invalid stone placement"
 
 initialize : Game
 initialize = Game (Ball (Coord 7 9) []) [Coord 5 2, Coord 8 9, Coord 9 9, Coord 8 10, Coord 1 2] X

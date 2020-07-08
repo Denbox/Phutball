@@ -5660,14 +5660,15 @@ var $author$project$Game$nextTurn = function (turn) {
 		return $author$project$Game$X;
 	}
 };
-var $author$project$Game$finishBallTurn = function (game) {
-	var updated_turn = $author$project$Game$nextTurn(game.turn);
-	var updated_ball = A2($author$project$Game$Ball, game.ball.coord, _List_Nil);
-	var b = game.ball;
-	return (!_Utils_eq(game.ball.history, _List_Nil)) ? _Utils_update(
-		game,
-		{ball: updated_ball, turn: updated_turn}) : game;
-};
+var $author$project$Game$finishBallTurn = F2(
+	function (game, coord) {
+		var updated_turn = $author$project$Game$nextTurn(game.turn);
+		var updated_ball = A2($author$project$Game$Ball, game.ball.coord, _List_Nil);
+		return ((!_Utils_eq(game.ball.history, _List_Nil)) && _Utils_eq(coord, game.ball.coord)) ? $elm$core$Result$Ok(
+			_Utils_update(
+				game,
+				{ball: updated_ball, turn: updated_turn})) : $elm$core$Result$Err('Invalid turn finish');
+	});
 var $elm$core$Basics$negate = function (n) {
 	return -n;
 };
@@ -5911,9 +5912,10 @@ var $author$project$Game$moveBall = F2(
 		var updated_stones = _Utils_eq(
 			$elm$core$List$head(b.history),
 			$elm$core$Maybe$Just(landing_coord)) ? undo_stones : redo_stones;
-		return A2($author$project$Game$validBallMove, game, landing_coord) ? _Utils_update(
-			game,
-			{ball: updated_ball, stones: updated_stones}) : game;
+		return A2($author$project$Game$validBallMove, game, landing_coord) ? $elm$core$Result$Ok(
+			_Utils_update(
+				game,
+				{ball: updated_ball, stones: updated_stones})) : $elm$core$Result$Err('Invalid ball move');
 	});
 var $author$project$Game$end_zone_length = 2;
 var $author$project$Game$validStoneCoord = function (c) {
@@ -5938,16 +5940,26 @@ var $author$project$Game$placeStone = F2(
 		if (A2($author$project$Game$validPlacement, game, coord)) {
 			var updated_turn = $author$project$Game$nextTurn(game.turn);
 			var updated_stones = A2($elm$core$List$cons, coord, game.stones);
-			return _Utils_update(
-				game,
-				{stones: updated_stones, turn: updated_turn});
+			return $elm$core$Result$Ok(
+				_Utils_update(
+					game,
+					{stones: updated_stones, turn: updated_turn}));
 		} else {
-			return game;
+			return $elm$core$Result$Err('Invalid stone placement');
 		}
 	});
 var $author$project$Game$validBallTurnFinish = F2(
 	function (game, coord) {
 		return (!_Utils_eq(game.ball.history, _List_Nil)) && _Utils_eq(game.ball.coord, coord);
+	});
+var $elm$core$Result$withDefault = F2(
+	function (def, result) {
+		if (result.$ === 'Ok') {
+			var a = result.a;
+			return a;
+		} else {
+			return def;
+		}
 	});
 var $author$project$V3$update = F2(
 	function (msg, model) {
@@ -5959,33 +5971,33 @@ var $author$project$V3$update = F2(
 				if (mouse.$ === 'Pressing') {
 					var start = mouse.a;
 					var current = mouse.b;
+					var release_mouse = function (result_game) {
+						return _Utils_Tuple2(
+							A2(
+								$author$project$V3$Playing,
+								A2($elm$core$Result$withDefault, game, result_game),
+								$author$project$V3$Up),
+							$elm$core$Platform$Cmd$none);
+					};
 					return A2($author$project$V3$ballSelected, game, start) ? (A2(
 						$author$project$Game$validBallTurnFinish,
 						game,
-						$author$project$Game$snap(end)) ? _Utils_Tuple2(
+						$author$project$Game$snap(end)) ? release_mouse(
 						A2(
-							$author$project$V3$Playing,
-							$author$project$Game$finishBallTurn(game),
-							$author$project$V3$Up),
-						$elm$core$Platform$Cmd$none) : _Utils_Tuple2(
+							$author$project$Game$finishBallTurn,
+							game,
+							$author$project$Game$snap(end))) : release_mouse(
 						A2(
-							$author$project$V3$Playing,
-							A2(
-								$author$project$Game$moveBall,
-								game,
-								$author$project$Game$snap(end)),
-							$author$project$V3$Up),
-						$elm$core$Platform$Cmd$none)) : (_Utils_eq(
+							$author$project$Game$moveBall,
+							game,
+							$author$project$Game$snap(end)))) : (_Utils_eq(
 						$author$project$Game$snap(end),
-						$author$project$Game$snap(start)) ? _Utils_Tuple2(
+						$author$project$Game$snap(start)) ? release_mouse(
 						A2(
-							$author$project$V3$Playing,
-							A2(
-								$author$project$Game$placeStone,
-								game,
-								$author$project$Game$snap(end)),
-							$author$project$V3$Up),
-						$elm$core$Platform$Cmd$none) : _Utils_Tuple2(model, $elm$core$Platform$Cmd$none));
+							$author$project$Game$placeStone,
+							game,
+							$author$project$Game$snap(end))) : release_mouse(
+						$elm$core$Result$Ok(game)));
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				}

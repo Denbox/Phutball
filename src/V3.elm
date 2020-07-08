@@ -12,9 +12,6 @@ type Model =
 type Mouse
   = Pressing Point Point
   | Up
-  -- = DraggingBall Point
-  -- | Pressing Coord
-  -- | Up
 
 ballSelected : Game -> Point -> Bool
 ballSelected game press_location =
@@ -33,16 +30,21 @@ update msg model =
         MouseUp end ->
           case mouse of
             Pressing start current ->
-              if ballSelected game start then
-                if validBallTurnFinish game (snap end) then
-                  (Playing (finishBallTurn game) Up, Cmd.none)
+              let
+                release_mouse : Result String Game -> (Model, Cmd Msg)
+                release_mouse result_game =
+                  (Playing (Result.withDefault game result_game) Up, Cmd.none)
+              in
+                if ballSelected game start then
+                  if validBallTurnFinish game (snap end) then
+                    release_mouse (finishBallTurn game (snap end))
+                  else
+                    release_mouse (moveBall game (snap end))
                 else
-                  (Playing (moveBall game (snap end)) Up, Cmd.none)
-              else
-                if snap end == snap start then
-                  (Playing (placeStone game (snap end)) Up, Cmd.none)
-                else
-                  (model, Cmd.none)
+                  if snap end == snap start then
+                    release_mouse (placeStone game (snap end))
+                  else
+                    release_mouse (Ok game)
             Up -> -- this case should never occur
               (model, Cmd.none)
         MouseDown point ->
