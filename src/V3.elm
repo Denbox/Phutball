@@ -2,7 +2,8 @@ module V3 exposing (main)
 import Browser
 import Browser.Events exposing (onMouseDown, onMouseUp, onMouseMove)
 import Html exposing (Html)
-import Json.Decode exposing (Decoder, field, int, map, map2)
+import Html.Events exposing (custom)
+import Json.Decode exposing (Decoder, field, int, map, map2, succeed)
 import Draw exposing (draw)
 import Game exposing (..)
 
@@ -107,6 +108,24 @@ selectPressType mouse_button_used point =
     MouseDown Right point
   else
     MouseDown Left point
+
+-- onRightClick msg =
+--   custom
+--     "contextmenu"
+--     { stopPropogation = True
+--     , preventDefault = True
+--     }
+--     (succeed msg)
+onRightClick msg =
+  custom
+    "contextmenu"
+    (succeed { message = msg, stopPropagation = True, preventDefault = True })
+
+-- stopRightClickPropogation _ =
+--   stopPropogationOn
+--     "contextmenu"
+--     (succeed True)
+
 
 main =
     Browser.element
