@@ -2,8 +2,7 @@ module V3 exposing (main)
 import Browser
 import Browser.Events exposing (onMouseDown, onMouseUp, onMouseMove)
 import Html exposing (Html)
-import Html.Events exposing (custom)
-import Json.Decode exposing (Decoder, field, int, map, map2, succeed)
+import Json.Decode exposing (Decoder, field, int, map, map2)
 import Draw exposing (draw)
 import Game exposing (..)
 
@@ -82,6 +81,7 @@ view model =
     Playing game mouse ->
       case mouse of
         LeftPress start current ->
+          -- draw game (ballSelected game start)
           if ballSelected game start then
             draw game (Just current)
           else
@@ -102,7 +102,7 @@ decodeX       = (field "pageX" int)
 decodeY       = (field "pageY" int)
 decodeXY      = (map2 Point decodeX decodeY)
 
--- selectPressType : Int -> Point -> Sub Msg
+selectPressType : Int -> Point -> Msg
 selectPressType mouse_button_used point =
   if mouse_button_used == 3 then
     MouseDown Right point
@@ -116,10 +116,6 @@ selectPressType mouse_button_used point =
 --     , preventDefault = True
 --     }
 --     (succeed msg)
-onRightClick msg =
-  custom
-    "contextmenu"
-    (succeed { message = msg, stopPropagation = True, preventDefault = True })
 
 -- stopRightClickPropogation _ =
 --   stopPropogationOn

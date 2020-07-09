@@ -3,14 +3,22 @@ import Game exposing (..)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Html exposing (Html)
+import Svg.Events exposing (custom)
+import Json.Decode exposing (succeed)
 
 -- draw : List Coord -> List Point -> Point -> Bool -> Html msg
 -- draw stone_coords ball_history ball_point dragging =
+
 draw : Game -> Maybe Point -> Html msg
 draw game mouse_point =
-  svg [width <| String.fromInt game_width, height <| String.fromInt game_height]
+  svg [width <| String.fromInt game_width, height <| String.fromInt game_height]--, onRightPress]
   ([background] ++ endZones ++ (grid n_rows n_cols) ++ stones game.stones ++ jumpedStones game ++ [ballTrail game mouse_point, ball game mouse_point])
 
+onRightPress : msg -> Attribute msg
+onRightPress msg =
+  custom
+    "contextmenu"
+    (succeed { message = msg, stopPropagation = True, preventDefault = True })
 
 background : Svg msg
 background =
