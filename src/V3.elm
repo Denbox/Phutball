@@ -2,8 +2,11 @@ module V3 exposing (main)
 import Browser
 import Browser.Events exposing (onMouseDown, onMouseUp, onMouseMove)
 import Html exposing (Html)
-import Json.Decode exposing (Decoder, field, int, map, map2)
-import Draw exposing (draw)
+import Json.Decode exposing (Decoder, field, int, map, map2, succeed)
+import Draw exposing (game_elements)
+import Svg exposing (svg)
+import Svg.Events exposing (custom)
+import Svg.Attributes exposing (width, height)
 import Game exposing (..)
 
 type Model =
@@ -27,6 +30,7 @@ type Msg
   = MouseUp Point
   | MouseDown Side Point
   | MouseMove Point
+  | NoOp
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -70,10 +74,22 @@ update msg model =
               (Playing game (LeftPress start current), Cmd.none)
             _ ->
               (model, Cmd.none)
+        NoOp ->
+          (model, Cmd.none)
 
 init : () -> (Model, Cmd Msg)
 init _ =
   (Playing initialize Up, Cmd.none)
+
+onRightPress : msg -> Html.Attribute msg
+onRightPress msg =
+  custom
+    "contextmenu"
+    (succeed { message = msg, stopPropagation = True, preventDefault = True })
+
+draw game mouse_point =
+  svg [width <| String.fromInt game_width, height <| String.fromInt game_height, onRightPress NoOp]
+  (game_elements game mouse_point)
 
 view : Model -> Html Msg
 view model =

@@ -1,4 +1,4 @@
-module Draw exposing (draw)
+module Draw exposing (game_elements)
 import Game exposing (..)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
@@ -6,19 +6,13 @@ import Html exposing (Html)
 import Svg.Events exposing (custom)
 import Json.Decode exposing (succeed)
 
--- draw : List Coord -> List Point -> Point -> Bool -> Html msg
--- draw stone_coords ball_history ball_point dragging =
+-- draw : Game -> Maybe Point -> Html Msg
+-- draw game mouse_point =
+--   svg [width <| String.fromInt game_width, height <| String.fromInt game_height]
 
-draw : Game -> Maybe Point -> Html msg
-draw game mouse_point =
-  svg [width <| String.fromInt game_width, height <| String.fromInt game_height]--, onRightPress]
-  ([background] ++ endZones ++ (grid n_rows n_cols) ++ stones game.stones ++ jumpedStones game ++ [ballTrail game mouse_point, ball game mouse_point])
-
-onRightPress : msg -> Attribute msg
-onRightPress msg =
-  custom
-    "contextmenu"
-    (succeed { message = msg, stopPropagation = True, preventDefault = True })
+game_elements : Game -> Maybe Point -> List (Svg msg)
+game_elements game mouse_point =
+  [background] ++ endZones ++ (grid n_rows n_cols) ++ stones game.stones ++ jumpedStones game ++ [ballTrail game mouse_point, ball game mouse_point]
 
 background : Svg msg
 background =

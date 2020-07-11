@@ -6025,7 +6025,7 @@ var $author$project$V3$update = F2(
 								A2($author$project$V3$LeftPress, point, point)),
 							$elm$core$Platform$Cmd$none);
 				}
-			default:
+			case 'MouseMove':
 				var current = msg.a;
 				if (mouse.$ === 'LeftPress') {
 					var start = mouse.a;
@@ -6038,8 +6038,11 @@ var $author$project$V3$update = F2(
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				}
+			default:
+				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 		}
 	});
+var $author$project$V3$NoOp = {$: 'NoOp'};
 var $elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
 var $author$project$Game$game_height = ($author$project$Game$margin * 2) + ($author$project$Game$cell_size * ($author$project$Game$n_rows - 1));
 var $author$project$Game$game_width = ($author$project$Game$margin * 2) + ($author$project$Game$cell_size * ($author$project$Game$n_cols - 1));
@@ -6299,8 +6302,46 @@ var $author$project$Draw$stones = function (coords) {
 		},
 		coords);
 };
+var $author$project$Draw$game_elements = F2(
+	function (game, mouse_point) {
+		return _Utils_ap(
+			_List_fromArray(
+				[$author$project$Draw$background]),
+			_Utils_ap(
+				$author$project$Draw$endZones,
+				_Utils_ap(
+					A2($author$project$Draw$grid, $author$project$Game$n_rows, $author$project$Game$n_cols),
+					_Utils_ap(
+						$author$project$Draw$stones(game.stones),
+						_Utils_ap(
+							$author$project$Draw$jumpedStones(game),
+							_List_fromArray(
+								[
+									A2($author$project$Draw$ballTrail, game, mouse_point),
+									A2($author$project$Draw$ball, game, mouse_point)
+								]))))));
+	});
+var $elm$virtual_dom$VirtualDom$Custom = function (a) {
+	return {$: 'Custom', a: a};
+};
+var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var $elm$html$Html$Events$custom = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$Custom(decoder));
+	});
+var $elm$svg$Svg$Events$custom = $elm$html$Html$Events$custom;
+var $author$project$V3$onRightPress = function (msg) {
+	return A2(
+		$elm$svg$Svg$Events$custom,
+		'contextmenu',
+		$elm$json$Json$Decode$succeed(
+			{message: msg, preventDefault: true, stopPropagation: true}));
+};
 var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
-var $author$project$Draw$draw = F2(
+var $author$project$V3$draw = F2(
 	function (game, mouse_point) {
 		return A2(
 			$elm$svg$Svg$svg,
@@ -6309,24 +6350,10 @@ var $author$project$Draw$draw = F2(
 					$elm$svg$Svg$Attributes$width(
 					$elm$core$String$fromInt($author$project$Game$game_width)),
 					$elm$svg$Svg$Attributes$height(
-					$elm$core$String$fromInt($author$project$Game$game_height))
+					$elm$core$String$fromInt($author$project$Game$game_height)),
+					$author$project$V3$onRightPress($author$project$V3$NoOp)
 				]),
-			_Utils_ap(
-				_List_fromArray(
-					[$author$project$Draw$background]),
-				_Utils_ap(
-					$author$project$Draw$endZones,
-					_Utils_ap(
-						A2($author$project$Draw$grid, $author$project$Game$n_rows, $author$project$Game$n_cols),
-						_Utils_ap(
-							$author$project$Draw$stones(game.stones),
-							_Utils_ap(
-								$author$project$Draw$jumpedStones(game),
-								_List_fromArray(
-									[
-										A2($author$project$Draw$ballTrail, game, mouse_point),
-										A2($author$project$Draw$ball, game, mouse_point)
-									])))))));
+			A2($author$project$Draw$game_elements, game, mouse_point));
 	});
 var $author$project$V3$view = function (model) {
 	var game = model.a;
@@ -6335,11 +6362,11 @@ var $author$project$V3$view = function (model) {
 		var start = mouse.a;
 		var current = mouse.b;
 		return A2($author$project$V3$ballSelected, game, start) ? A2(
-			$author$project$Draw$draw,
+			$author$project$V3$draw,
 			game,
-			$elm$core$Maybe$Just(current)) : A2($author$project$Draw$draw, game, $elm$core$Maybe$Nothing);
+			$elm$core$Maybe$Just(current)) : A2($author$project$V3$draw, game, $elm$core$Maybe$Nothing);
 	} else {
-		return A2($author$project$Draw$draw, game, $elm$core$Maybe$Nothing);
+		return A2($author$project$V3$draw, game, $elm$core$Maybe$Nothing);
 	}
 };
 var $author$project$V3$main = $elm$browser$Browser$element(
