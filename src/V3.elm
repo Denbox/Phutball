@@ -67,7 +67,11 @@ update msg model =
             RightPress _ _ -> -- this case should never occur
               (model, Cmd.none)
             Up ->
-              (Playing game (LeftPress point point), Cmd.none)
+              case side of
+                Left ->
+                  (Playing game (LeftPress point point), Cmd.none)
+                Right ->
+                  (Playing game (RightPress point point), Cmd.none)
         MouseMove current ->
           case mouse of
             LeftPress start _ ->

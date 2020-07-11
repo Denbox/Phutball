@@ -162,15 +162,25 @@ moveBall game landing_coord =
 
 undoBallMove : Game -> Coord -> Result String Game
 undoBallMove game coord =
-  let
-    undo_ball = Ball coord (withDefault [] <| tail game.ball.history)
-    jumped_stones = coordsBetween game.ball.coord coord
-    undo_stones = game.stones ++ jumped_stones
-  in
-    if game.ball.coord == coord then
-      Ok {game | ball = undo_ball, stones = undo_stones}
-    else
-      Err "Can't undo ball move"
+  if game.ball.coord /= coord then
+    Err "Can't undo ball move"
+  else
+    case game.ball.history of
+      (x::xs) ->
+        Ok {game | ball = (Ball x xs), stones = (game.stones ++ (coordsBetween x coord))}
+      [] ->
+        Err "Can't undo ball move"
+  -- let
+  --   case game.ball.history of
+  --     (x:xs) ->
+  --   undo_ball = Ball coord (withDefault [] <| tail game.ball.history)
+  --   jumped_stones = coordsBetween game.ball.coord coord
+  --   undo_stones = game.stones ++ jumped_stones
+  -- in
+  --   if game.ball.coord == coord then
+  --     Ok {game | ball = undo_ball, stones = undo_stones}
+  --   else
+  --     Err "Can't undo ball move"
 
 validBallTurnFinish : Game -> Coord -> Bool
 validBallTurnFinish game coord =
